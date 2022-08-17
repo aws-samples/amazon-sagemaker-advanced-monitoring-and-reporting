@@ -16,6 +16,12 @@ Parameters:
       - Yes
       - No
     Description: Enable SageMaker training job events streamed to log group
+  EnableSageMakerPipelineExecutionLogging:
+    Type: String
+    Default: Yes
+    AllowedValues:
+      - Yes
+      - No
   SagemakerJobNamePattern:
     Type: String
     Default: /(?<job_prefix>S+)-(?<job_time>d{4}-d{2}-d{2}-d{2}-d{2})/
@@ -23,6 +29,7 @@ Parameters:
 Conditions:
   ProcessingJobLoggingEnabled: !Equals [!Ref EnableSageMakerProcessingJobLogging, Yes]
   TrainingJobLoggingEnabled: !Equals [!Ref EnableSageMakerTrainingJobLogging, Yes]
+  PipelineExecutionLoggingEnabled: !Equals [!Ref EnableSageMakerPipelineExecutionLogging, Yes]
 
 Resources:
   sageMakerProcessingJobEventRule:
@@ -87,6 +94,38 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub ${Prefix}/sagemaker-training-job-state
+      RetentionInDays: 731
+
+  sageMakerPipelineExecutionEventRule:
+    Condition: PipelineExecutionLoggingEnabled
+    Type: AWS::Events::Rule
+    Properties:
+      Description: SageMaker Pipeline Execution State Change event streamed to a log group
+      EventPattern:
+        source:
+          - aws.sagemaker
+        detail-type:
+          - SageMaker Model Building Pipeline Execution Status Change
+      State: ENABLED
+      Targets:
+        - Arn:
+            Fn::Join:
+              - ""
+              - - "arn:"
+                - Ref: AWS::Partition
+                - ":logs:"
+                - Ref: AWS::Region
+                - ":"
+                - Ref: AWS::AccountId
+                - ":log-group:"
+                - Ref: sageMakerPipelineExecutionLogGroup
+          Id: Target0
+
+  sageMakerPipelineExecutionLogGroup:
+    Condition: PipelineExecutionLoggingEnabled
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub ${Prefix}/sagemaker-pipeline-execution-state
       RetentionInDays: 731
 
   CloudWatchLogsResourcePolicy:
