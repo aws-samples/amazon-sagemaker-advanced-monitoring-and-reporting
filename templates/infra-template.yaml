@@ -205,22 +205,14 @@ Resources:
       DashboardBody:
         Fn::Join:
           - ""
-          - - '{"widgets":[{"type":"log","width":6,"height":6,"x":0,"y":0,"properties":{"view":"table","region":"'
+          - - '{"widgets":[{"type":"log","width":6,"height":6,"x":0,"y":0,"properties":{"view":"table","title":"SageMaker Processing Job History","region":"'
             - Ref: AWS::Region
             - "\",\"query\":\"SOURCE '"
             - Ref: sageMakerProcessingJobLogGroup
-            - "' | sort @timestamp desc\\n| filter detail.ProcessingJobStatus like /Completed/\\n| fields detail.ProcessingJobName as job_name, detail.ProcessingJobStatus as job_status, fromMillis(detail.ProcessingStartTime) as start_time, fromMillis(detail.ProcessingEndTime) as end_time\\n| parse detail.ProcessingJobName "
-            - Ref: SagemakerJobNamePattern
-            - "\"}},{\"type\":\"log\",\"width\":6,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"timeSeries\",\"region\":\""
+            - "' | sort @timestamp desc\\n| filter detail.ProcessingJobStatus not like /InProgress/\\n| fields detail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason\"}},{\"type\":\"log\",\"width\":6,\"height\":6,\"x\":0,\"y\":6,\"properties\":{\"view\":\"table\",\"title\":\"SageMaker Training Job History\",\"region\":\""
             - Ref: AWS::Region
             - "\",\"query\":\"SOURCE '"
-            - Ref: sageMakerProcessingJobLogGroup
-            - "' | filter detail.ProcessingJobStatus like /Completed/\\n| parse detail.ProcessingJobName "
-            - Ref: SagemakerJobNamePattern
-            - "\\n| display detail.ProcessingJobName, detail.ProcessingJobStatus, fromMillis(detail.ProcessingStartTime) as start_time, fromMillis(detail.ProcessingEndTime) as end_time\\n| stat count(*) as completed_jobs by job_prefix\",\"stacked\":false}},{\"type\":\"log\",\"width\":6,\"height\":6,\"x\":0,\"y\":12,\"properties\":{\"view\":\"timeSeries\",\"region\":\""
-            - Ref: AWS::Region
-            - "\",\"query\":\"SOURCE '"
-            - Ref: sageMakerProcessingJobLogGroup
-            - "' | filter detail.ProcessingJobStatus like /Completed/\\n| display detail.ProcessingJobName, detail.ProcessingJobStatus\\n| sort @timestamp desc\",\"stacked\":false}}]}"
+            - Ref: sageMakerTrainingJobLogGroup
+            - "' | sort @timestamp desc\\n| filter detail.TrainingJobStatus not like /InProgress/\\n| fields detail.TrainingJobName as jobname,  detail.TrainingJobStatus as status, detail.SecondaryStatus as secondary_status, fromMillis(detail.TrainingStartTime) as start_time, (detail.TrainingEndTime-detail.TrainingStartTime)/1000 as duration_in_seconds\"}}]}"
       DashboardName: !Sub ${Prefix}-Dashboard
 
