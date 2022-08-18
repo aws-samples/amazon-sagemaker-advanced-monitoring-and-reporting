@@ -197,7 +197,7 @@ Resources:
     Type: AWS::Logs::ResourcePolicy
     Properties:
       PolicyName: "AllowEventBridgeToPutLogEvents"
-      PolicyDocument: '{"Statement":[{"Action":["logs:PutLogEvents"],"Effect":"Allow","Principal":{"Service":"events.amazonaws.com"},"Resource":"*"}],"Version":"2012-10-17"}'
+      PolicyDocument: '{"Statement":[{"Action":["logs:PutLogEvents", "logs:CreateLogStream"],"Effect":"Allow","Principal":{"Service":"events.amazonaws.com"},"Resource":"*"}],"Version":"2012-10-17"}'
 
   sagemakerMonitoringDashboard:
     Type: AWS::CloudWatch::Dashboard
