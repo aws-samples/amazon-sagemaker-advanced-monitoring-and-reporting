@@ -2,6 +2,11 @@
 
 TODO: Fill this README out!
 
+Highlevel Steps:
+* Enable monitoring account configuration in the home region
+* Deploy observability source account stackset via Control Tower management account to target OUs/Accounts
+
+
 Be sure to:
 
 * Change the title in this README
