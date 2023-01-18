@@ -181,6 +181,18 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     sagemakerMonitoringDashboard.addWidgets(new cloudwatch.CustomWidget({
       functionArn: customWidgetLambda.functionArn,
       title: 'My lambda baked widget',
+      params: {
+        service: 'EC2',
+        api: "describeInstances",
+        params: {
+          Filter: [
+            {
+              Name: "instance-state-name",
+              Values: ["running"],
+            },
+          ],
+        },
+      },
     }));
   }
 }
