@@ -1,15 +1,15 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
-  pMonitoringAccountId:
+  MonitoringAccountId:
     Type: String
     Description: Account ID of the central monitoring account
 
-  pMonitoringAccountSinkArn:
+  MonitoringAccountSinkArn:
     Type: String
     Description: The ARN of the monitoring account sink. A sink is a resource that represents an attachment point in a monitoring account.
 
-  pPolicy:
+  Policy:
     Description: The level of access to give to the Monitoring account
     Type: String
     Default: CloudWatch-and-ServiceLens
@@ -24,12 +24,12 @@ Conditions:
   SkipMonitoringAccount: !Not
     - !Equals
       - !Ref AWS::AccountId
-      - !Ref pMonitoringAccountId
-  DoFullReadOnly: !Equals [ !Ref pPolicy, View-Access-for-all-services ]
-  DoAutomaticDashboards: !Equals [ !Ref pPolicy, CloudWatch-and-AutomaticDashboards ]
-  DoServiceLens: !Equals [ !Ref pPolicy, CloudWatch-and-ServiceLens ]
-  DoServiceLensAndAutomaticDashboards: !Equals [ !Ref pPolicy, CloudWatch-AutomaticDashboards-and-ServiceLens ]
-  DoCWReadOnly: !Equals [ !Ref pPolicy, CloudWatch-core-permissions ]
+      - !Ref MonitoringAccountId
+  DoFullReadOnly: !Equals [ !Ref Policy, View-Access-for-all-services ]
+  DoAutomaticDashboards: !Equals [ !Ref Policy, CloudWatch-and-AutomaticDashboards ]
+  DoServiceLens: !Equals [ !Ref Policy, CloudWatch-and-ServiceLens ]
+  DoServiceLensAndAutomaticDashboards: !Equals [ !Ref Policy, CloudWatch-AutomaticDashboards-and-ServiceLens ]
+  DoCWReadOnly: !Equals [ !Ref Policy, CloudWatch-core-permissions ]
 
 Resources:
   Link:
@@ -41,7 +41,7 @@ Resources:
         - "AWS::CloudWatch::Metric"
         - "AWS::Logs::LogGroup"
         - "AWS::XRay::Trace"
-      SinkIdentifier: !Ref pMonitoringAccountSinkArn
+      SinkIdentifier: !Ref MonitoringAccountSinkArn
       
   rCWCrossAccountSharingRole:
     Type: AWS::IAM::Role
@@ -52,7 +52,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub 'arn:aws:iam::${pMonitoringAccountId}:root'
+              AWS: !Sub 'arn:aws:iam::${MonitoringAccountId}:root'
             Action:
               - sts:AssumeRole
       Path: "/"

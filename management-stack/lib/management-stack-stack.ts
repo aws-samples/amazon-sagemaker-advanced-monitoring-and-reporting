@@ -17,6 +17,7 @@ export class ManagementStackStack extends cdk.Stack {
     //   visibilityTimeout: cdk.Duration.seconds(300)
     // });
     const monitoringAccountId = '028884242148';
+    const monitoringAccountRoleName = 'sagemaker-monitoring-account-role'
     const monitoringAccountSinkArn = 'arn:aws:oam:ap-southeast-2:028884242148:sink/086b5142-3953-4772-acf5-7a645b05f8a4';
     const monitoringAccountEventbusArn = 'arn:aws:events:ap-southeast-2:028884242148:event-bus/test-sagemaker-monitoring-eventbus';
     const crossaccountCloudWatchSharingPolicy = 'CloudWatch-and-ServiceLens';
@@ -40,15 +41,15 @@ export class ManagementStackStack extends cdk.Stack {
         },
         parameters: [
           {
-            parameterKey: 'pMonitoringAccountId',
+            parameterKey: 'MonitoringAccountId',
             parameterValue: monitoringAccountId,
           },
           {
-            parameterKey: 'pMonitoringAccountSinkArn',
+            parameterKey: 'MonitoringAccountSinkArn',
             parameterValue: monitoringAccountSinkArn,
           },
           {
-            parameterKey: 'pPolicy',
+            parameterKey: 'Policy',
             parameterValue: crossaccountCloudWatchSharingPolicy,
           },
         ],
@@ -78,8 +79,16 @@ export class ManagementStackStack extends cdk.Stack {
         },
         parameters: [
           {
-            parameterKey: 'pMonitoringEventBusArn',
+            parameterKey: 'MonitoringEventBusArn',
             parameterValue: monitoringAccountEventbusArn,
+          },
+          {
+            parameterKey: 'MonitoringAccountId',
+            parameterValue: monitoringAccountId,
+          },
+          {
+            parameterKey: 'MonitoringAccountRoleName',
+            parameterValue: monitoringAccountRoleName,
           }
         ],
         stackInstancesGroup: [{

@@ -32,6 +32,22 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: MonitoringAccountInfraStackConfig) {
     super(scope, id, props);
 
+    const sagemakerMonitoringAccountRoleName = 'sagemaker-monitoring-account-role'
+    const sagemakerSourceAccountRoleName = 'sagemaker-monitoring-sourceaccount-role'
+
+    const crossAccountSagemakerMonitoringRole = new iam.Role(
+      this, 'crossAccountSagemakerMonitoringRole', {
+        roleName: sagemakerMonitoringAccountRoleName,
+        assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com')
+      }
+    );
+    crossAccountSagemakerMonitoringRole.addToPolicy(
+      new iam.PolicyStatement({
+        resources: [`arn:aws:iam::*:role/${sagemakerSourceAccountRoleName}`],
+        actions: ["sts:AssumeRole"]
+      })
+    )
+
     const sagemakerMonitoringEventbus = new events.EventBus(
       this, 'sagemakerMonitoringEventbus',
       {

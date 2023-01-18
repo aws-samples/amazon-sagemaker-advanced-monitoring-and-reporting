@@ -1,45 +1,68 @@
 AWSTemplateFormatVersion: 2010-09-09
 
 Parameters:
-  pMonitoringEventBusArn:
+  MonitoringAccountId:
+    Description: The ID of the monitoring account
+    Type: String
+  MonitoringAccountRoleName:
+    Description: The name of monitoring account role which will cross account access the source accounts
+    Type: String
+  MonitoringEventBusArn:
     Description: The arn of the monitoring account event bus
     Type: String
-  EnableSageMakerProcessingJobEventsStreaming:
+  EnableSagemakerServiceEventsStreaming:
     Type: String
     Default: Yes
     AllowedValues:
       - Yes
       - No
-    Description: Enable SageMaker processing job events streamed to centralized monitoring account eventbus
-  EnableSageMakerTrainingJobEventsStreaming:
+    Description: Enable SageMaker events streamed to centralized monitoring account eventbus
+  EnableSagemakerAPIEventsStreaming:
     Type: String
     Default: Yes
     AllowedValues:
       - Yes
       - No
-    Description: Enable SageMaker training job events streamed to centralized monitoring account eventbus
-  EnableSageMakerPipelineExecutionEventsStreaming:
-    Type: String
-    Default: Yes
-    AllowedValues:
-      - Yes
-      - No
-    Description: Enable SageMaker pipeline execution events streamed to centralized monitoring account eventbus
-  EnableSageMakerPipelineStepStatusEventsStreaming:
-    Type: String
-    Default: Yes
-    AllowedValues:
-      - Yes
-      - No
-    Description: Enable SageMaker pipeline execution step status events streamed to centralized monitoring account eventbus
+    Description: Enable SageMaker CloudTrail API events streamed to centralized monitoring account eventbus
   
 Conditions:
-  ProcessingJobLoggingEnabled: !Equals [!Ref EnableSageMakerProcessingJobEventsStreaming, Yes]
-  TrainingJobLoggingEnabled: !Equals [!Ref EnableSageMakerTrainingJobEventsStreaming, Yes]
-  PipelineExecutionLoggingEnabled: !Equals [!Ref EnableSageMakerPipelineExecutionEventsStreaming, Yes]
-  PipelineStepStatusLoggingEnabled: !Equals [!Ref EnableSageMakerPipelineStepStatusEventsStreaming, Yes]
+  sagemakerServiceEventsStreamingEnabled: !Equals [!Ref EnableSagemakerServiceEventsStreaming, Yes]
+  sagemakerAPIEventsStreamingEnabled: !Equals [!Ref EnableSagemakerAPIEventsStreaming, Yes]
 
 Resources:
+  crossAccountFromMonitoringAccountRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "sagemaker-monitoring-sourceaccount-role"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${MonitoringAccountId}:root'
+            Condition:
+              StringLike:
+                "aws:PrincipalArn": "arn:aws:iam::${MonitoringAccountId}:role/${MonitoringAccountRoleName}"
+        Version: "2012-10-17"
+  crossAccountFromMonitoringAccountRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sagemaker:List*
+            Effect: Allow
+            Resource: '*'
+          - Action: sagemaker:Get*
+            Effect: Allow
+            Resource: '*'
+          - Action: sagemaker:Describe*
+            Effect: Allow
+            Resource: '*'
+        Version: "2012-10-17"
+      PolicyName: crossAccountFromMonitoringAccountRolePolicy
+      Roles:
+        - Ref: crossAccountFromMonitoringAccountRole
+
   crossAccountToMonitoringAccountEventbusRole:
     Type: AWS::IAM::Role
     Properties:
@@ -57,13 +80,14 @@ Resources:
         Statement:
           - Action: events:PutEvents
             Effect: Allow
-            Resource: !Ref pMonitoringEventBusArn
+            Resource: !Ref MonitoringEventBusArn
         Version: "2012-10-17"
       PolicyName: crossAccountToMonitoringAccountEventbusRolePolicy
       Roles:
         - Ref: crossAccountToMonitoringAccountEventbusRole
 
-  sageMakerAPIEventRule:
+  sagemakerAPIEventRule:
+    Condition: sagemakerAPIEventsStreamingEnabled
     Type: AWS::Events::Rule
     Properties:
       Description: SageMaker service API events streamed to centralized monitoring account eventbus
@@ -77,83 +101,27 @@ Resources:
             - sagemaker.amazonaws.com
       State: ENABLED
       Targets:
-        - Arn: !Ref pMonitoringEventBusArn
+        - Arn: !Ref MonitoringEventBusArn
           Id: Target1
           RoleArn:
             Fn::GetAtt:
               - crossAccountToMonitoringAccountEventbusRole
               - Arn
 
-  sageMakerProcessingJobEventRule:
-    Condition: ProcessingJobLoggingEnabled
+  sagemakerServiceEventsRule:
+    Condition: sagemakerServiceEventsStreamingEnabled
     Type: AWS::Events::Rule
     Properties:
-      Description: SageMaker Processing Job State Change event streamed to centralized monitoring account eventbus
+      Description: SageMaker services event streamed to centralized monitoring account eventbus
       EventPattern:
         source:
           - aws.sagemaker
         detail-type:
-          - SageMaker Processing Job State Change
+          - suffix: State Change
+          - suffix: Status Change
       State: ENABLED
       Targets:
-        - Arn: !Ref pMonitoringEventBusArn
-          Id: Target1
-          RoleArn:
-            Fn::GetAtt:
-              - crossAccountToMonitoringAccountEventbusRole
-              - Arn
-
-  sageMakerTrainingJobEventRule:
-    Condition: TrainingJobLoggingEnabled
-    Type: AWS::Events::Rule
-    Properties:
-      Description: SageMaker Training Job State Change event streamed to centralized monitoring account eventbus
-      EventPattern:
-        source:
-          - aws.sagemaker
-        detail-type:
-          - SageMaker Training Job State Change
-      State: ENABLED
-      Targets:
-        - Arn: !Ref pMonitoringEventBusArn
-          Id: Target1
-          RoleArn:
-            Fn::GetAtt:
-              - crossAccountToMonitoringAccountEventbusRole
-              - Arn
-  
-  sageMakerPipelineExecutionEventRule:
-    Condition: PipelineExecutionLoggingEnabled
-    Type: AWS::Events::Rule
-    Properties:
-      Description: SageMaker Pipeline Execution State Change event streamed to centralized monitoring account eventbus
-      EventPattern:
-        source:
-          - aws.sagemaker
-        detail-type:
-          - SageMaker Model Building Pipeline Execution Status Change
-      State: ENABLED
-      Targets:
-        - Arn: !Ref pMonitoringEventBusArn
-          Id: Target1
-          RoleArn:
-            Fn::GetAtt:
-              - crossAccountToMonitoringAccountEventbusRole
-              - Arn
-  
-  sageMakerPipelineStepStatusEventRule:
-    Condition: PipelineStepStatusLoggingEnabled
-    Type: AWS::Events::Rule
-    Properties:
-      Description: SageMaker Pipeline Execution Step Status Change event streamed to centralized monitoring account eventbus
-      EventPattern:
-        source:
-          - aws.sagemaker
-        detail-type:
-          - SageMaker Model Building Pipeline Execution Step Status Change
-      State: ENABLED
-      Targets:
-        - Arn: !Ref pMonitoringEventBusArn
+        - Arn: !Ref MonitoringEventBusArn
           Id: Target1
           RoleArn:
             Fn::GetAtt:
