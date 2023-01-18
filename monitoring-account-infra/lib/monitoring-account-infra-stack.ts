@@ -5,11 +5,13 @@ import {
   aws_logs as logs,
   aws_cloudwatch as cloudwatch,
   aws_iam as iam,
+  aws_lambda as lambda,
+  aws_dynamodb as ddb,
   CfnOutput,
   RemovalPolicy,
 } from 'aws-cdk-lib'
-import { StringListParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
+import * as path from 'path';
 
 export interface MonitoringAccountInfraStackConfig extends cdk.StackProps {
   /**
@@ -101,6 +103,29 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     );
 
     sageMakerAPIEventRule.addTarget(new targets.CloudWatchLogGroup(sageMakerAPIEventsLogGroup));
+    
+    // Create DDB and Lambda
+    const sagemakerJobHistoryTable = new ddb.Table(
+      this,'sagemakerJobHistoryTable', {
+        partitionKey: {name: 'pk', type: ddb.AttributeType.STRING},
+        sortKey: {name:'sk', type:ddb.AttributeType.STRING},
+        billingMode: ddb.BillingMode.PAY_PER_REQUEST
+      }
+    );
+
+    const ingesterLambda = new lambda.Function(
+      this, 'ingesterLambda', {
+        code: lambda.Code.fromAsset(path.join(__dirname, 'functions', 'ingester')),
+        runtime: lambda.Runtime.PYTHON_3_9,
+        handler: 'index.handler',
+        environment: {
+          "JOBHISTORY_TABLE": sagemakerJobHistoryTable.tableName
+        }
+      }
+    );
+
+    sageMakerAPIEventRule.addTarget(new targets.LambdaFunction(ingesterLambda));
+
     // const sagemakerMonitoringDashboard = new cloudwatch.Dashboard(
     //   this, 'sagemakerMonitoringDashboard',
     //   {
