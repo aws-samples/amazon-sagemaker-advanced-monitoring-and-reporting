@@ -129,41 +129,58 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
 
     sagemakerStageChangeEventRule.addTarget(new targets.LambdaFunction(ingesterLambda));
 
-    // const sagemakerMonitoringDashboard = new cloudwatch.Dashboard(
-    //   this, 'sagemakerMonitoringDashboard',
-    //   {
-    //     dashboardName: 'SageMaker-Monitoring-Dashboard',
-    //     widgets: []
-    //   }
-    // )
-    // sagemakerMonitoringDashboard.addWidgets(
-    //   new cloudwatch.LogQueryWidget(
-    //     {
-    //       title: 'SageMaker Processing Job History',
-    //       logGroupNames: [sagemakerProcessingJobLogGroup.logGroupName],
-    //       view: cloudwatch.LogQueryVisualizationType.TABLE,
-    //       queryLines: [
-    //         'sort @timestamp desc',
-    //         'filter detail.ProcessingJobStatus not like /InProgress/',
-    //         'fields detail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
-    //       ]
-    //     }
-    //   )
-    // );
+    // CloudWatch Dashboard
+    const sagemakerMonitoringDashboard = new cloudwatch.Dashboard(
+      this, 'sagemakerMonitoringDashboard',
+      {
+        dashboardName: 'SageMaker-Monitoring-Dashboard',
+        widgets: []
+      }
+    )
+    sagemakerMonitoringDashboard.addWidgets(
+      new cloudwatch.LogQueryWidget(
+        {
+          title: 'SageMaker Processing Job History',
+          logGroupNames: [sagemakerServiceEventsLogGroup.logGroupName],
+          view: cloudwatch.LogQueryVisualizationType.TABLE,
+          queryLines: [
+            'sort @timestamp desc',
+            'filter detail.ProcessingJobStatus not like /InProgress/',
+            'fields detail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
+          ]
+        }
+      )
+    );
 
-    // sagemakerMonitoringDashboard.addWidgets(
-    //   new cloudwatch.LogQueryWidget(
-    //     {
-    //       title: 'SageMaker Training Job History',
-    //       logGroupNames: [sagemakerProcessingJobLogGroup.logGroupName],
-    //       view: cloudwatch.LogQueryVisualizationType.TABLE,
-    //       queryLines: [
-    //         'sort @timestamp desc',
-    //         'filter detail.TrainingJobStatus not like /InProgress/',
-    //         'fields detail.TrainingJobName as jobname,  detail.TrainingJobStatus as status, detail.SecondaryStatus as secondary_status, fromMillis(detail.TrainingStartTime) as start_time, (detail.TrainingEndTime-detail.TrainingStartTime)/1000 as duration_in_seconds'
-    //       ]
-    //     }
-    //   )
-    // );
+    sagemakerMonitoringDashboard.addWidgets(
+      new cloudwatch.LogQueryWidget(
+        {
+          title: 'SageMaker Training Job History',
+          logGroupNames: [sagemakerServiceEventsLogGroup.logGroupName],
+          view: cloudwatch.LogQueryVisualizationType.TABLE,
+          queryLines: [
+            'sort @timestamp desc',
+            'filter detail.TrainingJobStatus not like /InProgress/',
+            'fields detail.TrainingJobName as jobname,  detail.TrainingJobStatus as status, detail.SecondaryStatus as secondary_status, fromMillis(detail.TrainingStartTime) as start_time, (detail.TrainingEndTime-detail.TrainingStartTime)/1000 as duration_in_seconds'
+          ]
+        }
+      )
+    );
+
+    const customWidgetLambda = new lambda.Function(
+      this, 'customWidgetLambda', {
+        code: lambda.Code.fromAsset(path.join(__dirname, 'functions', 'custom_widget')),
+        runtime: lambda.Runtime.PYTHON_3_9,
+        handler: 'main.lambda_handler',
+        environment: {
+          "JOBHISTORY_TABLE": sagemakerJobHistoryTable.tableName
+        }
+      }
+    );
+    
+    sagemakerMonitoringDashboard.addWidgets(new cloudwatch.CustomWidget({
+      functionArn: customWidgetLambda.functionArn,
+      title: 'My lambda baked widget',
+    }));
   }
 }
