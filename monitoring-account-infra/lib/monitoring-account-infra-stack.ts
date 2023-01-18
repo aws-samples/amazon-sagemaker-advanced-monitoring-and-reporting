@@ -193,6 +193,14 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         }
       }
     );
+    customWidgetLambda.addToRolePolicy(
+      new iam.PolicyStatement(
+        {
+          actions: ["ec2:DescribeInstances"],
+          resources: ["*"]
+        }
+      )
+    )
     
     sagemakerMonitoringDashboard.addWidgets(new cloudwatch.CustomWidget({
       functionArn: customWidgetLambda.functionArn,
@@ -201,7 +209,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         service: 'EC2',
         api: "describeInstances",
         params: {
-          Filter: [
+          Filters: [
             {
               Name: "instance-state-name",
               Values: ["running"],
