@@ -57,30 +57,33 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       })
     );
 
-    const sageMakerProcessingJobEventRule = new events.Rule(
-      this, 'sageMakerProcessingJobEventRule',
+    const sagemakerStageChangeEventRule = new events.Rule(
+      this, 'sagemakerStageChangeEventRule',
       {
         eventBus: sagemakerMonitoringEventbus,
-        description: `SageMaker Processing Job State Change event streamed to a log group`,
+        description: `Capture SageMaker State and Status Change events`,
         eventPattern: {
           source: ["aws.sagemaker"],
-          detailType: ["SageMaker Processing Job State Change"],
+          detailType: events.Match.anyOf(
+            events.Match.suffix("State Change"),
+            events.Match.suffix("Status Change"),
+          ),
         },
       }
     );
 
-    const sageMakerProcessingJobLogGroup = new logs.LogGroup(
-      this, "sageMakerProcessingJobLogGroup",
+    const sagemakerServiceEventsLogGroup = new logs.LogGroup(
+      this, "sagemakerEventsLogGroup",
       {
-        logGroupName: `monitoring/sagemaker-processingjob-events`,
+        logGroupName: `monitoring/sagemaker-service-events`,
         removalPolicy: props.devMode? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
       }
     );
 
-    sageMakerProcessingJobEventRule.addTarget(new targets.CloudWatchLogGroup(sageMakerProcessingJobLogGroup));
+    sagemakerStageChangeEventRule.addTarget(new targets.CloudWatchLogGroup(sagemakerServiceEventsLogGroup));
 
-    const sageMakerAPIEventRule = new events.Rule(
-      this, 'sageMakerAPIEventRule',
+    const sagemakerAPIEventRule = new events.Rule(
+      this, 'sagemakerAPIEventRule',
       {
         eventBus: sagemakerMonitoringEventbus,
         description: `SageMaker API events streamed to a log group`,
@@ -94,15 +97,15 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       }
     );
 
-    const sageMakerAPIEventsLogGroup = new logs.LogGroup(
-      this, "sageMakerAPIEventsLogGroup",
+    const sagemakerAPIEventsLogGroup = new logs.LogGroup(
+      this, "sagemakerAPIEventsLogGroup",
       {
         logGroupName: `monitoring/sagemaker-api-events`,
         removalPolicy: props.devMode? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
       }
     );
 
-    sageMakerAPIEventRule.addTarget(new targets.CloudWatchLogGroup(sageMakerAPIEventsLogGroup));
+    sagemakerAPIEventRule.addTarget(new targets.CloudWatchLogGroup(sagemakerAPIEventsLogGroup));
     
     // Create DDB and Lambda
     const sagemakerJobHistoryTable = new ddb.Table(
@@ -117,14 +120,14 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       this, 'ingesterLambda', {
         code: lambda.Code.fromAsset(path.join(__dirname, 'functions', 'ingester')),
         runtime: lambda.Runtime.PYTHON_3_9,
-        handler: 'index.handler',
+        handler: 'main.lambda_handler',
         environment: {
           "JOBHISTORY_TABLE": sagemakerJobHistoryTable.tableName
         }
       }
     );
 
-    sageMakerAPIEventRule.addTarget(new targets.LambdaFunction(ingesterLambda));
+    sagemakerStageChangeEventRule.addTarget(new targets.LambdaFunction(ingesterLambda));
 
     // const sagemakerMonitoringDashboard = new cloudwatch.Dashboard(
     //   this, 'sagemakerMonitoringDashboard',
@@ -137,7 +140,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     //   new cloudwatch.LogQueryWidget(
     //     {
     //       title: 'SageMaker Processing Job History',
-    //       logGroupNames: [sageMakerProcessingJobLogGroup.logGroupName],
+    //       logGroupNames: [sagemakerProcessingJobLogGroup.logGroupName],
     //       view: cloudwatch.LogQueryVisualizationType.TABLE,
     //       queryLines: [
     //         'sort @timestamp desc',
@@ -152,7 +155,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     //   new cloudwatch.LogQueryWidget(
     //     {
     //       title: 'SageMaker Training Job History',
-    //       logGroupNames: [sageMakerProcessingJobLogGroup.logGroupName],
+    //       logGroupNames: [sagemakerProcessingJobLogGroup.logGroupName],
     //       view: cloudwatch.LogQueryVisualizationType.TABLE,
     //       queryLines: [
     //         'sort @timestamp desc',
