@@ -13,27 +13,32 @@ import {
 import { Construct } from 'constructs';
 import * as path from 'path';
 
-export interface MonitoringAccountInfraStackConfig extends cdk.StackProps {
+type MonitoringAccountInfraStackConfig = {
   /**
    * devMode - determines whether in devMode so that some resources and setting (such as kms) are skipped
    **/
-   readonly devMode: boolean;
+   devMode: boolean;
   /**
    * prefix - global solution prefix used for stack names, logical resource names
    * and physical names (where cross-account access scenarios apply)
    **/
-  readonly prefix: string;
-
-  readonly orgPathToAllow: string;
-  
-}
+  prefix: string;
+  orgPathToAllow: string;
+  sagemakerMonitoringAccountRoleName: string;
+  sagemakerSourceAccountRoleName: string;
+} & cdk.StackProps;
 
 export class MonitoringAccountInfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: MonitoringAccountInfraStackConfig) {
     super(scope, id, props);
 
-    const sagemakerMonitoringAccountRoleName = 'sagemaker-monitoring-account-role'
-    const sagemakerSourceAccountRoleName = 'sagemaker-monitoring-sourceaccount-role'
+    const {
+      devMode,
+      prefix,
+      orgPathToAllow,
+      sagemakerMonitoringAccountRoleName,
+      sagemakerSourceAccountRoleName,
+    } = props;
 
     const crossAccountSagemakerMonitoringRole = new iam.Role(
       this, 'crossAccountSagemakerMonitoringRole', {
@@ -51,7 +56,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     const sagemakerMonitoringEventbus = new events.EventBus(
       this, 'sagemakerMonitoringEventbus',
       {
-        eventBusName: `${props.prefix}-sagemaker-monitoring-eventbus`,
+        eventBusName: `${prefix}-sagemaker-monitoring-eventbus`,
       }
     );
 
@@ -66,7 +71,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         principals: [new iam.PrincipalWithConditions(
           new iam.AnyPrincipal(),
           {
-            'ForAnyValue:StringLike': {'aws:PrincipalOrgPaths': [props.orgPathToAllow]}
+            'ForAnyValue:StringLike': {'aws:PrincipalOrgPaths': [orgPathToAllow]}
           }
         )],
         resources: [sagemakerMonitoringEventbus.eventBusArn],
@@ -92,7 +97,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       this, "sagemakerEventsLogGroup",
       {
         logGroupName: `monitoring/sagemaker-service-events`,
-        removalPolicy: props.devMode? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
+        removalPolicy: devMode? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
       }
     );
 
@@ -117,7 +122,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       this, "sagemakerAPIEventsLogGroup",
       {
         logGroupName: `monitoring/sagemaker-api-events`,
-        removalPolicy: props.devMode? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
+        removalPolicy: devMode? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
       }
     );
 

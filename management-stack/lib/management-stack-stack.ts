@@ -6,24 +6,29 @@ import {
 import * as fs from 'fs';
 import * as path from 'path';
 
+type ManagementInfraProps = {
+  monitoringAccountId: string;
+  monitoringAccountRoleName: string;
+  monitoringAccountSinkArn: string;
+  monitoringAccountEventbusArn: string;
+  crossaccountCloudWatchSharingPolicy: string;
+  stackSetTargetOUs: string[];
+  stackSetTargetRegions: string[];
+} & cdk.StackProps;
+
 export class ManagementStackStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: ManagementInfraProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'ManagementStackQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
-    const monitoringAccountId = '028884242148';
-    const monitoringAccountRoleName = 'sagemaker-monitoring-account-role'
-    const monitoringAccountSinkArn = 'arn:aws:oam:ap-southeast-2:028884242148:sink/086b5142-3953-4772-acf5-7a645b05f8a4';
-    const monitoringAccountEventbusArn = 'arn:aws:events:ap-southeast-2:028884242148:event-bus/test-sagemaker-monitoring-eventbus';
-    const crossaccountCloudWatchSharingPolicy = 'CloudWatch-and-ServiceLens';
-    const stackSetTargetOUs = ['ou-svvu-adkcr4kl'];
-    const stackSetTargetRegions = ['ap-southeast-2'];
-
+    const {
+      monitoringAccountId,
+      monitoringAccountRoleName,
+      monitoringAccountSinkArn,
+      monitoringAccountEventbusArn,
+      crossaccountCloudWatchSharingPolicy,
+      stackSetTargetOUs,
+      stackSetTargetRegions,
+    } = props;
 
     const crossaccountObservabilitySourceStack = new cfn.CfnStackSet(this, "crossaccountObservabilitySourceStack",
       {
