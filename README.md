@@ -2,6 +2,13 @@
 
 TODO: Fill this README out!
 
+Highlevel Steps:
+* Enable monitoring account configuration in the home region
+* Deploy observability source account stackset via Control Tower management account to target OUs/Accounts
+
+## Solution Architecture
+![Solution Architecture](Architecture.png?raw=true "Solution Architecture")
+
 Be sure to:
 
 * Change the title in this README

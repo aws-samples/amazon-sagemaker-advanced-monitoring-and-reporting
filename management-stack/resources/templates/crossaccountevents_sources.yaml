@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  MonitoringAccountId:
+    Description: The ID of the monitoring account
+    Type: String
+  MonitoringAccountRoleName:
+    Description: The name of monitoring account role which will cross account access the source accounts
+    Type: String
+  MonitoringEventBusArn:
+    Description: The arn of the monitoring account event bus
+    Type: String
+  EnableSagemakerServiceEventsStreaming:
+    Type: String
+    Default: Yes
+    AllowedValues:
+      - Yes
+      - No
+    Description: Enable SageMaker events streamed to centralized monitoring account eventbus
+  EnableSagemakerAPIEventsStreaming:
+    Type: String
+    Default: Yes
+    AllowedValues:
+      - Yes
+      - No
+    Description: Enable SageMaker CloudTrail API events streamed to centralized monitoring account eventbus
+  
+Conditions:
+  sagemakerServiceEventsStreamingEnabled: !Equals [!Ref EnableSagemakerServiceEventsStreaming, Yes]
+  sagemakerAPIEventsStreamingEnabled: !Equals [!Ref EnableSagemakerAPIEventsStreaming, Yes]
+
+Resources:
+  crossAccountFromMonitoringAccountRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: "sagemaker-monitoring-sourceaccount-role"
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${MonitoringAccountId}:root'
+            Condition:
+              StringLike:
+                "aws:PrincipalArn": "arn:aws:iam::${MonitoringAccountId}:role/${MonitoringAccountRoleName}"
+        Version: "2012-10-17"
+  crossAccountFromMonitoringAccountRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: sagemaker:List*
+            Effect: Allow
+            Resource: '*'
+          - Action: sagemaker:Get*
+            Effect: Allow
+            Resource: '*'
+          - Action: sagemaker:Describe*
+            Effect: Allow
+            Resource: '*'
+        Version: "2012-10-17"
+      PolicyName: crossAccountFromMonitoringAccountRolePolicy
+      Roles:
+        - Ref: crossAccountFromMonitoringAccountRole
+
+  crossAccountToMonitoringAccountEventbusRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+        Version: "2012-10-17"
+  crossAccountToMonitoringAccountEventbusRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: events:PutEvents
+            Effect: Allow
+            Resource: !Ref MonitoringEventBusArn
+        Version: "2012-10-17"
+      PolicyName: crossAccountToMonitoringAccountEventbusRolePolicy
+      Roles:
+        - Ref: crossAccountToMonitoringAccountEventbusRole
+
+  sagemakerAPIEventRule:
+    Condition: sagemakerAPIEventsStreamingEnabled
+    Type: AWS::Events::Rule
+    Properties:
+      Description: SageMaker service API events streamed to centralized monitoring account eventbus
+      EventPattern:
+        source:
+          - aws.sagemaker
+        detail-type:
+          - AWS API Call via CloudTrail
+        detail:
+          eventSource:
+            - sagemaker.amazonaws.com
+      State: ENABLED
+      Targets:
+        - Arn: !Ref MonitoringEventBusArn
+          Id: Target1
+          RoleArn:
+            Fn::GetAtt:
+              - crossAccountToMonitoringAccountEventbusRole
+              - Arn
+
+  sagemakerServiceEventsRule:
+    Condition: sagemakerServiceEventsStreamingEnabled
+    Type: AWS::Events::Rule
+    Properties:
+      Description: SageMaker services event streamed to centralized monitoring account eventbus
+      EventPattern:
+        source:
+          - aws.sagemaker
+        detail-type:
+          - suffix: State Change
+          - suffix: Status Change
+      State: ENABLED
+      Targets:
+        - Arn: !Ref MonitoringEventBusArn
+          Id: Target1
+          RoleArn:
+            Fn::GetAtt:
+              - crossAccountToMonitoringAccountEventbusRole
+              - Arn

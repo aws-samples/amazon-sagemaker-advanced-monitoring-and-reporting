@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  MonitoringAccountId:
+    Type: String
+    Description: Account ID of the central monitoring account
+
+  MonitoringAccountSinkArn:
+    Type: String
+    Description: The ARN of the monitoring account sink. A sink is a resource that represents an attachment point in a monitoring account.
+
+  Policy:
+    Description: The level of access to give to the Monitoring account
+    Type: String
+    Default: CloudWatch-and-ServiceLens
+    AllowedValues:
+      - CloudWatch-and-AutomaticDashboards
+      - CloudWatch-and-ServiceLens
+      - CloudWatch-AutomaticDashboards-and-ServiceLens
+      - CloudWatch-core-permissions
+      - View-Access-for-all-services
+
+Conditions:
+  SkipMonitoringAccount: !Not
+    - !Equals
+      - !Ref AWS::AccountId
+      - !Ref MonitoringAccountId
+  DoFullReadOnly: !Equals [ !Ref Policy, View-Access-for-all-services ]
+  DoAutomaticDashboards: !Equals [ !Ref Policy, CloudWatch-and-AutomaticDashboards ]
+  DoServiceLens: !Equals [ !Ref Policy, CloudWatch-and-ServiceLens ]
+  DoServiceLensAndAutomaticDashboards: !Equals [ !Ref Policy, CloudWatch-AutomaticDashboards-and-ServiceLens ]
+  DoCWReadOnly: !Equals [ !Ref Policy, CloudWatch-core-permissions ]
+
+Resources:
+  Link:
+    Type: AWS::Oam::Link
+    Condition: SkipMonitoringAccount
+    Properties:
+      LabelTemplate: "$AccountName"
+      ResourceTypes: 
+        - "AWS::CloudWatch::Metric"
+        - "AWS::Logs::LogGroup"
+        - "AWS::XRay::Trace"
+      SinkIdentifier: !Ref MonitoringAccountSinkArn
+      
+  rCWCrossAccountSharingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CloudWatch-CrossAccountSharingRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${MonitoringAccountId}:root'
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns: !If
+        - DoFullReadOnly
+        -
+          - arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess
+          - arn:aws:iam::aws:policy/CloudWatchAutomaticDashboardsAccess
+          - arn:aws:iam::aws:policy/job-function/ViewOnlyAccess
+          - arn:aws:iam::aws:policy/AWSXrayReadOnlyAccess
+        - !If
+          - DoAutomaticDashboards
+          -
+            - arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess
+            - arn:aws:iam::aws:policy/CloudWatchAutomaticDashboardsAccess
+          - !If
+            - DoServiceLens
+            -
+              - arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess
+              - arn:aws:iam::aws:policy/AWSXrayReadOnlyAccess
+            - !If
+              - DoServiceLensAndAutomaticDashboards
+              -
+                - arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess
+                - arn:aws:iam::aws:policy/CloudWatchAutomaticDashboardsAccess
+                - arn:aws:iam::aws:policy/AWSXrayReadOnlyAccess
+              -
+                - arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess
