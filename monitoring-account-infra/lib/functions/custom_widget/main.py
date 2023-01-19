@@ -43,6 +43,6 @@ def lambda_handler(event, context):
     try:
         apiFunc = getattr(client, api)
         result = apiFunc(**params)
-        return json.dumps(result, sort_keys=True, default=str)        
+        return json.dumps(result['Items'], sort_keys=True, default=str)        
     except AttributeError:
         return f"api '{api}' not found for service '{service}'"

@@ -1,6 +1,10 @@
 import json
 import boto3
+import os
 from constants import SAGEMAKER_STAGE_CHANGE_EVENT
+
+dynamodb = boto3.resource('dynamodb')
+table = dynamodb.Table(os.getenv('JOBHISTORY_TABLE'))
 
 def lambda_handler(event, context):
 
@@ -15,17 +19,29 @@ def lambda_handler(event, context):
         print("Unexpected event received")
 
     if(event_type):
-        print(event_type.name)
         account = event["account"]
+        detail = event["detail"]
         for resource in event["resources"]:
             print(parse_arn(resource))
         
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "event received"
-        })
-    }
+        item = {"pk": event_type.name, "account": account, "metadata": json.dumps(detail)}
+        if event_type == SAGEMAKER_STAGE_CHANGE_EVENT.PROCESSING_JOB:
+            item["sk"] = detail.get("ProcessingJobName")
+            item["status"] = detail.get("ProcessingJobStatus")
+            if(detail.get("FailureReason")):
+                item["failureReason"] = detail.get("FailureReason")
+        elif event_type == SAGEMAKER_STAGE_CHANGE_EVENT.TRAINING_JOB:
+            item["sk"] = detail.get("TrainingJobName")
+            item["status"] = detail.get("TrainingJobStatus")
+        else:
+            print("Unhandled event type")
+        
+        response = table.put_item(
+            Item=item,
+            ReturnValues='NONE'
+        )
+        
+    return response
 
 def parse_arn(arn):
     # http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html

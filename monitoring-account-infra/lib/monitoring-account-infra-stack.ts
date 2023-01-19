@@ -142,6 +142,14 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         }
       }
     );
+    ingesterLambda.addToRolePolicy(
+      new iam.PolicyStatement(
+        {
+          actions: ["dynamodb:PutItem"],
+          resources: [sagemakerJobHistoryTable.tableArn]
+        },
+      )
+    );
 
     sagemakerStageChangeEventRule.addTarget(new targets.LambdaFunction(ingesterLambda));
 
@@ -201,25 +209,26 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     customWidgetLambda.addToRolePolicy(
       new iam.PolicyStatement(
         {
-          actions: ["ec2:DescribeInstances"],
+          actions: ["dynamodb:query"],
           resources: ["*"]
-        }
+        },
       )
-    )
+    );
     
     sagemakerMonitoringDashboard.addWidgets(new cloudwatch.CustomWidget({
       functionArn: customWidgetLambda.functionArn,
       title: 'My lambda baked widget',
       params: {
-        service: 'EC2',
-        api: "describeInstances",
+        service: 'DynamoDB',
+        api: "Query",
         params: {
-          Filters: [
-            {
-              Name: "instance-state-name",
-              Values: ["running"],
+          TableName: sagemakerJobHistoryTable.tableName,
+          ExpressionAttributeValues: {
+            ':v1': {
+                'S': 'PROCESSING_JOB',
             },
-          ],
+          },
+          KeyConditionExpression: 'pk = :v1',
         },
       },
     }));
