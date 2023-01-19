@@ -153,6 +153,11 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         widgets: []
       }
     )
+
+    // Example query:
+    // 'sort @timestamp desc',
+    // 'filter detail.ProcessingJobStatus not like /InProgress/',
+    // 'fields detail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
     sagemakerMonitoringDashboard.addWidgets(
       new cloudwatch.LogQueryWidget(
         {
@@ -161,9 +166,9 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
           view: cloudwatch.LogQueryVisualizationType.TABLE,
           queryLines: [
             'sort @timestamp desc',
-            'filter detail.ProcessingJobStatus not like /InProgress/',
-            'fields detail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
-          ]
+            'filter @message like /SageMaker Processing Job State Change/'
+          ],
+          width:24,
         }
       )
     );
@@ -176,9 +181,9 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
           view: cloudwatch.LogQueryVisualizationType.TABLE,
           queryLines: [
             'sort @timestamp desc',
-            'filter detail.TrainingJobStatus not like /InProgress/',
-            'fields detail.TrainingJobName as jobname,  detail.TrainingJobStatus as status, detail.SecondaryStatus as secondary_status, fromMillis(detail.TrainingStartTime) as start_time, (detail.TrainingEndTime-detail.TrainingStartTime)/1000 as duration_in_seconds'
-          ]
+            'filter @message like /SageMaker Training Job State Change/'
+          ],
+          width:24,
         }
       )
     );

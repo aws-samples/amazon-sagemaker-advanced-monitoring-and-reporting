@@ -1,6 +1,7 @@
 from enum import Enum
 
 class SAGEMAKER_STAGE_CHANGE_EVENT(Enum):
+  PROCESSING_JOB = "SageMaker Processing Job State Change",
   TRAINING_JOB = "SageMaker Training Job State Change"
   HYPERPARAMETER_JOB = "SageMaker HyperParameter Tuning Job State Change"
   TRANFORM_JOB = "SageMaker Transform Job State Change"
