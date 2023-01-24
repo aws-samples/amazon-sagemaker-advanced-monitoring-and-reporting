@@ -28,7 +28,7 @@ def lambda_handler(event, context, metrics):
             print(parse_arn(resource))
         
         item = {"pk": event_type.name, "account": account, "metadata": json.dumps(detail)}
-        metrics.put_dimensions({"account": account, "jobType": event_type.name})
+        metrics.set_dimensions({"account": account, "jobType": event_type.name}, use_default=False)
         metrics.set_property("JobType", event_type.value)
         
         if event_type == SAGEMAKER_STAGE_CHANGE_EVENT.PROCESSING_JOB:

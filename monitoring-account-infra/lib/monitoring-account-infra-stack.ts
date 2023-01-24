@@ -43,7 +43,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     } = props;
 
     const monitoring_event_bus_suffix = "-sagemaker-monitoring-eventbus";
-    const AWS_EMF_NAMESPACE = "SageMakerCentralizedMonitoring";
+    const AWS_EMF_NAMESPACE = "SageMakerMonitoring";
     const AWS_EMF_LOG_GROUP_NAME = "SageMakerCentralStatistics";
     const AWS_EMF_SERVICE_TYPE = "SageMaker";
     const AWS_EMF_SERVICE_NAME = "CentralMonitoring";
