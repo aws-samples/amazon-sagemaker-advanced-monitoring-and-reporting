@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: MIT-0
 
 # CloudWatch Custom Widget sample: call any read-only AWS API and return raw results in JSON
-import boto3
 import json
 import os
-import re
+import base64
+from plot import plot_chart
 
 DOCS = """
 ## Make an AWS Call
@@ -33,16 +33,8 @@ def lambda_handler(event, context):
     if 'describe' in event:
         return DOCS 
 
-    service = event.get('service', 'cloudwatch').lower()
-    apiRaw = event.get('api', 'list_dashboards')
-    api = re.sub(r'(?<!^)(?=[A-Z])', '_', apiRaw).lower()  # Convert to snakecase in case it's in CamelCase
-    region = event.get('region', os.environ['AWS_REGION'])
-    params = event.get('params', {})
-    client = boto3.client(service)
+    plot_chart()
+    image_data = open("/tmp/test.png", "rb").read()
+    base64_image = base64.b64encode(image_data).decode('UTF-8')
+    return f"""<img src="data:image/png;base64,{base64_image}">"""
     
-    try:
-        apiFunc = getattr(client, api)
-        result = apiFunc(**params)
-        return json.dumps(result['Items'], sort_keys=True, default=str)        
-    except AttributeError:
-        return f"api '{api}' not found for service '{service}'"

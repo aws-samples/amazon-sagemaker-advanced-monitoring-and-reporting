@@ -1,1 +1,2 @@
 dynamodb-json
+aws-embedded-metrics
