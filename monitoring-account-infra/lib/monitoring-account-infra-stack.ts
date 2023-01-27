@@ -201,31 +201,27 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       )
     );
     
-    const customWidget = new cloudwatch.CustomWidget({
-      functionArn: customWidgetLambda.functionArn,
-      title: 'My lambda baked widget',
-      width: 12,
-      height: 12,
-      params: {
-        service: 'DynamoDB',
-        api: "Query",
-        params: {
-          TableName: sagemakerJobHistoryTable.tableName,
-          ExpressionAttributeValues: {
-            ':v1': {
-                'S': 'PROCESSING_JOB',
-            },
-          },
-          KeyConditionExpression: 'pk = :v1',
-        },
-      },
-    });
-    sagemakerMonitoringDashboard.addWidgets(customWidget);
+    // const customWidget = new cloudwatch.CustomWidget({
+    //   functionArn: customWidgetLambda.functionArn,
+    //   title: 'My lambda baked widget',
+    //   width: 12,
+    //   height: 12,
+    //   params: {
+    //     service: 'DynamoDB',
+    //     api: "Query",
+    //     params: {
+    //       TableName: sagemakerJobHistoryTable.tableName,
+    //       ExpressionAttributeValues: {
+    //         ':v1': {
+    //             'S': 'PROCESSING_JOB',
+    //         },
+    //       },
+    //       KeyConditionExpression: 'pk = :v1',
+    //     },
+    //   },
+    // });
+    // sagemakerMonitoringDashboard.addWidgets(customWidget);
 
-    // Example query:
-    // 'sort @timestamp desc',
-    // 'filter detail.ProcessingJobStatus not like /InProgress/',
-    // 'fields detail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
     sagemakerMonitoringDashboard.addWidgets(
       new cloudwatch.GraphWidget({
         title: "Total Processing Job Count",
@@ -246,7 +242,8 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         title: "Failed Processing Job Count",
         stacked: false,
         width: 12,
-        left:[
+        height:6,
+        right:[
           new cloudwatch.MathExpression({
             expression: `SELECT SUM(ProcessingJobCount_Failed) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
             searchRegion: this.region,
@@ -264,26 +261,28 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
           view: cloudwatch.LogQueryVisualizationType.TABLE,
           queryLines: [
             'sort @timestamp desc',
-            'filter @message like /SageMaker Processing Job State Change/'
+            'filter `detail-type` like /SageMaker Processing Job State Change/',
+            'filter detail.ProcessingJobStatus not like /InProgress/',
+            'fields account, sdetail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
           ],
           width:24,
         }
       )
     );
 
-    sagemakerMonitoringDashboard.addWidgets(
-      new cloudwatch.LogQueryWidget(
-        {
-          title: 'SageMaker Training Job History',
-          logGroupNames: [sagemakerServiceEventsLogGroup.logGroupName],
-          view: cloudwatch.LogQueryVisualizationType.TABLE,
-          queryLines: [
-            'sort @timestamp desc',
-            'filter @message like /SageMaker Training Job State Change/'
-          ],
-          width:24,
-        }
-      )
-    );
+    // sagemakerMonitoringDashboard.addWidgets(
+    //   new cloudwatch.LogQueryWidget(
+    //     {
+    //       title: 'SageMaker Training Job History',
+    //       logGroupNames: [sagemakerServiceEventsLogGroup.logGroupName],
+    //       view: cloudwatch.LogQueryVisualizationType.TABLE,
+    //       queryLines: [
+    //         'sort @timestamp desc',
+    //         'filter @message like /SageMaker Training Job State Change/'
+    //       ],
+    //       width:24,
+    //     }
+    //   )
+    // );
   }
 }
