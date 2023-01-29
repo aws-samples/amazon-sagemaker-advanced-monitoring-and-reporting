@@ -263,7 +263,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
             'sort @timestamp desc',
             'filter `detail-type` like /SageMaker Processing Job State Change/',
             'filter detail.ProcessingJobStatus not like /InProgress/',
-            'fields account, sdetail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
+            'fields account, detail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
           ],
           width:24,
         }
