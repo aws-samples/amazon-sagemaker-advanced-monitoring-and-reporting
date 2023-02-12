@@ -5,7 +5,21 @@ A solution to enable centralized monitoring of SageMaker jobs and activities acr
 ## Solution Architecture
 ![Solution Architecture](Architecture.png?raw=true "Solution Architecture")
 
-Highlevel Steps:
+There are 2 parts in this solution.
+### Centralized Events Collection
+Amazon SageMaker has native integration with the Amazon EventBridge service and can generates various service events. The list of SageMaker service events through EventBridge can be found ![here](https://docs.aws.amazon.com/sagemaker/latest/dg/automating-sagemaker-with-eventbridge.html). In addition to the service events, CloudTrail service captures API servers for various AWS services, which also streams to EventBridge so that can be utilized by many downstream automation or monitoring use cases. In our solution, we uses EventBridge rules in the workload accounts to stream both SageMaker service events and API events to the monitoring account's EventBus for centralized monitoring.
+
+In the centralized monitoring account, the events are captured by a EventBrige rule and further processed into in different targets:
+* CloudWatch Log Group - events are stored in there for auditing purpose. The event logs can also be used to run ![CloudWatch Log Insights queries](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html) which can help to perform adhoc query as well as showing queries in a CloudWatch Dashboard for operation visibility.
+* DynamoDB - With a help of an event parsing Lambda function, the events captured by EventBridge rule can be transformed into more structured data entries and stored in a DynamoDB. This can then further supports more advanced monitoring tool, such as CloudWatch Dashboard custom widget, Amazon managed service for Grafana or even fronted by an API for external tool integration (Please note the integration with other monitoring tool with the DynamoDB is not part of the solution).
+
+### CloudWatch Cross-Account Observability
+In the bottom part of the solution diagram uses native CloudWatch Cross-Account Observability to achieve metrics, logs and traces access. In order to enable this, necessary permission and resources needs to be created in the source workload accounts.
+
+
+In our solution, the required resources in the source workload accounts are deployed via CloudFormation StackSet from the AWS organization's management account. Therefore, no manual deploy of a source workload account stack is required. When a new account is created or an existing account moved into a target OU, the source workload infra stack will be automatically deployed to support this solution.
+
+## Highlevel Steps:
 
 * Enable monitoring account configuration in the home region
 * Deploy observability source account stackset via Control Tower management account to target OUs/Accounts
