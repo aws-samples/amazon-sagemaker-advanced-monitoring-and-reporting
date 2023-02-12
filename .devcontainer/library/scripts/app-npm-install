@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+WORKSPACE=$(pwd)
+
+for f in management-stack monitoring-account-infra
+do
+  echo "Installing NPM dependencies on ${f}"
+  cd "${WORKSPACE}/${f}"
+  npm install
+done

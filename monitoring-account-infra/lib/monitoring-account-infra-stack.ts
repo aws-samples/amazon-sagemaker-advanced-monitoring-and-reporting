@@ -14,6 +14,7 @@ import {
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { Construct } from 'constructs';
 import * as path from 'path';
+import { Parameters } from './constants';
 
 type MonitoringAccountInfraStackConfig = {
   /**
@@ -42,11 +43,10 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       sagemakerSourceAccountRoleName,
     } = props;
 
-    const monitoring_event_bus_suffix = "-sagemaker-monitoring-eventbus";
-    const AWS_EMF_NAMESPACE = "SageMakerMonitoring";
-    const AWS_EMF_LOG_GROUP_NAME = "SageMakerCentralStatistics";
-    const AWS_EMF_SERVICE_TYPE = "SageMaker";
-    const AWS_EMF_SERVICE_NAME = "CentralMonitoring";
+    const AWS_EMF_NAMESPACE = Parameters.EMF.NAMESPACE;
+    const AWS_EMF_LOG_GROUP_NAME = Parameters.EMF.LOG_GROUP_NAME;
+    const AWS_EMF_SERVICE_TYPE = Parameters.EMF.SERVICE_TYPE;
+    const AWS_EMF_SERVICE_NAME = Parameters.EMF.SERVICE_NAME;
 
     const crossAccountSagemakerMonitoringRole = new iam.Role(
       this, 'crossAccountSagemakerMonitoringRole', {
@@ -64,7 +64,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     const sagemakerMonitoringEventbus = new events.EventBus(
       this, 'sagemakerMonitoringEventbus',
       {
-        eventBusName: `${prefix}${monitoring_event_bus_suffix}`,
+        eventBusName: `${prefix}${Parameters.MONITORING_EVENTBUS_SUFFIX}`,
       }
     );
 
@@ -104,7 +104,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     const sagemakerServiceEventsLogGroup = new logs.LogGroup(
       this, "sagemakerEventsLogGroup",
       {
-        logGroupName: `monitoring/sagemaker-service-events`,
+        logGroupName: Parameters.SAGEMAKER_EVENTS_LOG_GROUP_NAME,
         removalPolicy: devMode? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
       }
     );
@@ -129,7 +129,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     const sagemakerAPIEventsLogGroup = new logs.LogGroup(
       this, "sagemakerAPIEventsLogGroup",
       {
-        logGroupName: `monitoring/sagemaker-api-events`,
+        logGroupName: Parameters.SAGEMAKER_API_EVENTS_LOG_GROUP_NAME,
         removalPolicy: devMode? RemovalPolicy.DESTROY : RemovalPolicy.RETAIN
       }
     );
@@ -175,7 +175,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     const sagemakerMonitoringDashboard = new cloudwatch.Dashboard(
       this, 'sagemakerMonitoringDashboard',
       {
-        dashboardName: 'SageMaker-Monitoring-Dashboard',
+        dashboardName: Parameters.DASHBOARD_NAME,
         widgets: []
       }
     )

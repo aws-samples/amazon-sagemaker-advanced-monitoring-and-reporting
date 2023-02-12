@@ -1,0 +1,21 @@
+{
+  "name": "Amazon Sagemaker Enhanced Monitoring",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "VARIANT": "0-16"
+    }
+  },
+  "mounts": [
+    "source=management-stack,target=${containerWorkspaceFolder}/management-stack/node_modules,type=volume",
+    "source=monitoring-account-infra,target=${containerWorkspaceFolder}/monitoring-account-infra/node_modules,type=volume",
+  ],
+  "postStartCommand": "post-start",
+  "customizations": {
+    "vscode": {
+      "settings": {},
+      "extensions": ["dbaeumer.vscode-eslint", "EditorConfig.EditorConfig", "esbenp.prettier-vscode", "ms-vsliveshare.vsliveshare"],
+    }
+  },
+  "remoteUser": "root"
+}
