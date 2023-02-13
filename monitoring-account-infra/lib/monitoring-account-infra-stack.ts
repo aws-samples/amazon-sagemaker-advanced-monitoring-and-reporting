@@ -280,5 +280,14 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     //     }
     //   )
     // );
+
+    new CfnOutput(this, 'MonitoringAccountRoleName', {
+      exportName: 'monitoring_account_role_name',
+      value: crossAccountSagemakerMonitoringRole.roleName,
+    });
+    new CfnOutput(this, 'MonitoringAccountEventbusARN', {
+      exportName: 'monitoring_account_eventbus_arn',
+      value: sagemakerMonitoringEventbus.eventBusArn,
+    })
   }
 }
