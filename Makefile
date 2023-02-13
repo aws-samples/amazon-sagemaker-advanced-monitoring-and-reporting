@@ -10,7 +10,6 @@ synth-management-stackset:
 
 .PHONY: deploy-monitoring-account-infra
 deploy-monitoring-account-infra:
-	#pip install --target ./monitoring-account-infra/lib/functions/${function}/ -r ./monitoring-account-infra/lib/functions/${function}/requirements.txt
 	cd monitoring-account-infra && cdk deploy
 
 .PHONY: synth-monitoring-account-infra

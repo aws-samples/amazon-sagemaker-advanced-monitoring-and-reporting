@@ -5,13 +5,13 @@ import {
 } from 'aws-cdk-lib'
 import * as fs from 'fs';
 import * as path from 'path';
+import {Parameters} from './constants';
 
 type ManagementInfraProps = {
   monitoringAccountId: string;
   monitoringAccountRoleName: string;
   monitoringAccountSinkArn: string;
   monitoringAccountEventbusArn: string;
-  crossaccountCloudWatchSharingPolicy: string;
   stackSetTargetOUs: string[];
   stackSetTargetRegions: string[];
 } & cdk.StackProps;
@@ -25,7 +25,6 @@ export class ManagementStackStack extends cdk.Stack {
       monitoringAccountRoleName,
       monitoringAccountSinkArn,
       monitoringAccountEventbusArn,
-      crossaccountCloudWatchSharingPolicy,
       stackSetTargetOUs,
       stackSetTargetRegions,
     } = props;
@@ -55,7 +54,7 @@ export class ManagementStackStack extends cdk.Stack {
           },
           {
             parameterKey: 'Policy',
-            parameterValue: crossaccountCloudWatchSharingPolicy,
+            parameterValue: Parameters.CROSSACCOUNT_CLOUDWATCH_SHARING_POLICY,
           },
         ],
         stackInstancesGroup: [{

@@ -27,8 +27,6 @@ type MonitoringAccountInfraStackConfig = {
    **/
   prefix: string;
   orgPathToAllow: string;
-  sagemakerMonitoringAccountRoleName: string;
-  sagemakerSourceAccountRoleName: string;
 } & cdk.StackProps;
 
 export class MonitoringAccountInfraStack extends cdk.Stack {
@@ -39,8 +37,6 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       devMode,
       prefix,
       orgPathToAllow,
-      sagemakerMonitoringAccountRoleName,
-      sagemakerSourceAccountRoleName,
     } = props;
 
     const AWS_EMF_NAMESPACE = Parameters.EMF.NAMESPACE;
@@ -50,13 +46,13 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
 
     const crossAccountSagemakerMonitoringRole = new iam.Role(
       this, 'crossAccountSagemakerMonitoringRole', {
-        roleName: sagemakerMonitoringAccountRoleName,
+        roleName: Parameters.SAGEMAKER_MONITORING_ACCOUNT_ROLE_NAME,
         assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com')
       }
     );
     crossAccountSagemakerMonitoringRole.addToPolicy(
       new iam.PolicyStatement({
-        resources: [`arn:aws:iam::*:role/${sagemakerSourceAccountRoleName}`],
+        resources: [`arn:aws:iam::*:role/${Parameters.SAGEMAKER_SOURCE_ACCOUNT_ROLE_NAME}`],
         actions: ["sts:AssumeRole"]
       })
     )
