@@ -21,8 +21,9 @@ In our solution, the required resources in the source workload accounts are depl
 
 ## Highlevel Steps:
 
-* Enable monitoring account configuration in the home region
-* Deploy observability source account stackset via Control Tower management account to target OUs/Accounts
+* Enable monitoring account configuration in the home region. This is a one-off action. Follow the ![Step 1 instruction](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount) to complete.
+* Deploy the CDK monitoring-account-infra-stack
+* Deploy the source account stackset. This is done using the management-stack CDK code to deploy stackset into the AWS organization's management account.
 
 ## Security
 
