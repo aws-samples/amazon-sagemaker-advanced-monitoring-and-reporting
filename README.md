@@ -26,7 +26,7 @@ In our solution, the required resources in the source workload accounts are depl
 * Clone this repo to local workspace. Copy .env.sample file to .env, and update the management account ID, monitoring account ID and region to the corresponding values.
 * Deploy the CDK monitoring-account-infra-stack. 
   * Obtain the AWS Organization path where the SageMaker workload accounts are located. Example: "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*"
-  * Duplicate cdk.context.json.example in monitoring-account-infra folder and rename to cdk.context.json
+  * Duplicate cdk.context.json.sample in monitoring-account-infra folder and rename to cdk.context.json
   * Update the "org-path-to-allow" attribute in the cdk.context.json to the value obtained from previous step
   * Run make target
     ```
@@ -37,7 +37,7 @@ In our solution, the required resources in the source workload accounts are depl
     * MonitoringAccountRoleName
 
 * Deploy the source account stackset. This is done using the management-stack CDK code to deploy stackset into the AWS organization's management account.
-  * Duplicate cdk.context.json.example in management-stack folder and rename to cdk.context.json. Update the content of cdk.context.json using the values obtained above
+  * Duplicate cdk.context.json.sample in management-stack folder and rename to cdk.context.json. Update the content of cdk.context.json using the values obtained above
   ```
   {
     "monitoring-account-id": "",
