@@ -63,10 +63,6 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         eventBusName: `${prefix}${Parameters.MONITORING_EVENTBUS_SUFFIX}`,
       }
     );
-
-    new CfnOutput(this, 'monitoringEventbusArn', {
-      value: sagemakerMonitoringEventbus.eventBusArn
-    });
     
     sagemakerMonitoringEventbus.addToResourcePolicy(
       new iam.PolicyStatement({
@@ -266,27 +262,12 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       )
     );
 
-    // sagemakerMonitoringDashboard.addWidgets(
-    //   new cloudwatch.LogQueryWidget(
-    //     {
-    //       title: 'SageMaker Training Job History',
-    //       logGroupNames: [sagemakerServiceEventsLogGroup.logGroupName],
-    //       view: cloudwatch.LogQueryVisualizationType.TABLE,
-    //       queryLines: [
-    //         'sort @timestamp desc',
-    //         'filter @message like /SageMaker Training Job State Change/'
-    //       ],
-    //       width:24,
-    //     }
-    //   )
-    // );
-
     new CfnOutput(this, 'MonitoringAccountRoleName', {
-      exportName: 'monitoring_account_role_name',
+      exportName: 'monitoring-account-role-name',
       value: crossAccountSagemakerMonitoringRole.roleName,
     });
     new CfnOutput(this, 'MonitoringAccountEventbusARN', {
-      exportName: 'monitoring_account_eventbus_arn',
+      exportName: 'monitoring-account-eventbus-arn',
       value: sagemakerMonitoringEventbus.eventBusArn,
     })
   }

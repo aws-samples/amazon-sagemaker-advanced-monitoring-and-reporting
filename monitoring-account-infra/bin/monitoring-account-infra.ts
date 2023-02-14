@@ -5,7 +5,11 @@ import { MonitoringAccountInfraStack } from '../lib/monitoring-account-infra-sta
 
 const app = new cdk.App();
 new MonitoringAccountInfraStack(app, 'MonitoringAccountInfraStack', {
+  env: {
+    account: process.env.CDK_DEPLOY_ACCOUNT,
+    region: process.env.CDK_DEPLOY_REGION,
+  },
   devMode: true,
   prefix: `test`,
-  orgPathToAllow: app.node.tryGetContext('org_path_to_allow'),
+  orgPathToAllow: app.node.tryGetContext('org-path-to-allow'),
 });

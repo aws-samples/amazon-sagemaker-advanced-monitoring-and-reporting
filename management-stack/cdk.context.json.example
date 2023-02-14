@@ -1,8 +1,8 @@
 {
-  "monitoring_account_id": "123456789012",
-  "monitoring_account_sink_arn": "arn:aws:oam:ap-southeast-2:123456789012:sink/11111111-2222-3333-aabb-1a2b3c4d5e",
-  "monitoring_account_role_name": "sagemaker-monitoring-account-role",
-  "monitoring_account_eventbus_arn": "arn:aws:events:ap-southeast-2:123456789012:event-bus/sagemaker-monitoring-eventbus",
-  "workload_account_OUs": ["ou-aaaa-1a2b3c4d"],
-  "workload_account_regions": ["ap-southeast-2"]
+  "monitoring-account-id": "123456789012",
+  "monitoring-account-sink-arn": "arn:aws:oam:ap-southeast-2:123456789012:sink/11111111-2222-3333-aabb-1a2b3c4d5e",
+  "monitoring-account-role-name": "sagemaker-monitoring-account-role",
+  "monitoring-account-eventbus-arn": "arn:aws:events:ap-southeast-2:123456789012:event-bus/sagemaker-monitoring-eventbus",
+  "workload-account-OUs": ["ou-aaaa-1a2b3c4d"],
+  "workload-account-regions": ["ap-southeast-2"]
 }

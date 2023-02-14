@@ -19,14 +19,39 @@ In the bottom part of the solution diagram uses native CloudWatch Cross-Account 
 
 In our solution, the required resources in the source workload accounts are deployed via CloudFormation StackSet from the AWS organization's management account. Therefore, no manual deploy of a source workload account stack is required. When a new account is created or an existing account moved into a target OU, the source workload infra stack will be automatically deployed to support this solution.
 
-## Highlevel Steps:
+## Steps:
 
 * Enable monitoring account configuration in the home region. This is a one-off action. Follow the [Step 1 instruction](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount) to complete. Once this step is completed, you should have the following information:
-  * monitoring account sink ARN
-* Deploy the CDK monitoring-account-infra-stack. Once this step is completed, you should have the following information:
-  * monitoring account role name
-  * monitoring account Eventbus ARN
+  * monitoring account sink ARN: CloudWatch service console > Settings > Manage source accounts > Configuration details > Monitoring accounts sink ARN
+* Clone this repo to local workspace. Copy .env.sample file to .env, and update the management account ID, monitoring account ID and region to the corresponding values.
+* Deploy the CDK monitoring-account-infra-stack. 
+  * Obtain the AWS Organization path where the SageMaker workload accounts are located. Example: "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*"
+  * Duplicate cdk.context.json.example in monitoring-account-infra folder and rename to cdk.context.json
+  * Update the "org-path-to-allow" attribute in the cdk.context.json to the value obtained from previous step
+  * Run make target
+    ```
+    make deploy-monitoring-account-infra
+    ```
+    Once this step is completed, you should have the following information from output:
+    * MonitoringAccountEventbusARN 
+    * MonitoringAccountRoleName
+
 * Deploy the source account stackset. This is done using the management-stack CDK code to deploy stackset into the AWS organization's management account.
+  * Duplicate cdk.context.json.example in management-stack folder and rename to cdk.context.json. Update the content of cdk.context.json using the values obtained above
+  ```
+  {
+    "monitoring-account-id": "",
+    "monitoring-account-sink-arn": "",
+    "monitoring-account-role-name": "",
+    "monitoring-account-eventbus-arn": "",
+    "workload-account-OUs": [""],
+    "workload-account-regions": [""]
+  }
+  ```
+  * Run make target
+    ```
+    make deploy-management-stackset
+    ```
 
 ## Security
 
