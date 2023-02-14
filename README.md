@@ -38,15 +38,15 @@ In our solution, the required resources in the source workload accounts are depl
 
 * Deploy the source account stackset. This is done using the management-stack CDK code to deploy stackset into the AWS organization's management account.
   * Duplicate cdk.context.json.sample in management-stack folder and rename to cdk.context.json. Update the content of cdk.context.json using the values obtained above
-  ```
-  {
-    "monitoring-account-id": "",
-    "monitoring-account-sink-arn": "",
-    "monitoring-account-role-name": "",
-    "monitoring-account-eventbus-arn": "",
-    "workload-account-OUs": [""],
-    "workload-account-regions": [""]
-  }
+    ```
+    {
+      "monitoring-account-id": "",
+      "monitoring-account-sink-arn": "",
+      "monitoring-account-role-name": "",
+      "monitoring-account-eventbus-arn": "",
+      "workload-account-OUs": [""],
+      "workload-account-regions": [""]
+    }
   ```
   * Run make target
     ```
