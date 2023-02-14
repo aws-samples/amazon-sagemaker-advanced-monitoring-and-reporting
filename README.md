@@ -47,7 +47,7 @@ In our solution, the required resources in the source workload accounts are depl
       "workload-account-OUs": [""],
       "workload-account-regions": [""]
     }
-  ```
+    ```
   * Run make target
     ```
     make deploy-management-stackset
