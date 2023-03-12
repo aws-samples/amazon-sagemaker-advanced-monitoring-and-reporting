@@ -23,9 +23,11 @@ In our solution, the required resources in the source workload accounts are depl
 
 * Enable monitoring account configuration in the home region. This is a one-off action. Follow the [Step 1 instruction](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount) to complete. Once this step is completed, you should have the following information:
   * monitoring account sink ARN: CloudWatch service console > Settings > Manage source accounts > Configuration details > Monitoring accounts sink ARN
-* Clone this repo to local workspace. Copy `.env.sample` file to `.env`, and update the management account ID, monitoring account ID and region to the corresponding values. If you are not using AWS Organization, you can ignore the management account ID.
+  
+* Clone this repo to local workspace. Copy `.env.sample` file to `.env`, and update monitoring account ID and region to the corresponding values. If you are using AWS Organizations, you can set the management account ID in `.env` file. The management account ID will be used later when deploying the workload account infra.
+  
 * Deploy the CDK monitoring-account-infra-stack. 
-  * Obtain the AWS Organization path where the SageMaker workload accounts are located. Example: "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*"
+  * (If AWS Organizations is in use) Obtain the AWS Organizations path where the SageMaker workload accounts are located. Example: "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*"
   * Duplicate `cdk.context.json.sample` in `monitoring-account-infra` folder and rename to `cdk.context.json`
   * Update the "org-path-to-allow" attribute in the `cdk.context.json` to the value obtained from previous step
   * Run make target

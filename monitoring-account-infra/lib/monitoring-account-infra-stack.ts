@@ -26,7 +26,8 @@ type MonitoringAccountInfraStackConfig = {
    * and physical names (where cross-account access scenarios apply)
    **/
   prefix: string;
-  orgPathToAllow: string;
+  orgPathToAllow?: string;
+  accountsToAllow: string[];
 } & cdk.StackProps;
 
 export class MonitoringAccountInfraStack extends cdk.Stack {
@@ -37,6 +38,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       devMode,
       prefix,
       orgPathToAllow,
+      accountsToAllow,
     } = props;
 
     const AWS_EMF_NAMESPACE = Parameters.EMF.NAMESPACE;
@@ -64,19 +66,31 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       }
     );
     
-    sagemakerMonitoringEventbus.addToResourcePolicy(
-      new iam.PolicyStatement({
-        sid: 'AllowOU',
-        actions: ['events:PutEvents'],
-        principals: [new iam.PrincipalWithConditions(
-          new iam.AnyPrincipal(),
-          {
-            'ForAnyValue:StringLike': {'aws:PrincipalOrgPaths': [orgPathToAllow]}
-          }
-        )],
-        resources: [sagemakerMonitoringEventbus.eventBusArn],
-      })
-    );
+    if (orgPathToAllow) {
+      sagemakerMonitoringEventbus.addToResourcePolicy(
+        new iam.PolicyStatement({
+          sid: 'AllowOU',
+          actions: ['events:PutEvents'],
+          principals: [new iam.PrincipalWithConditions(
+            new iam.AnyPrincipal(),
+            {
+              'ForAnyValue:StringLike': {'aws:PrincipalOrgPaths': [orgPathToAllow]}
+            }
+          )],
+          resources: [sagemakerMonitoringEventbus.eventBusArn],
+        })
+      );
+    }
+    accountsToAllow.forEach(accountId => {
+      sagemakerMonitoringEventbus.addToResourcePolicy(
+        new iam.PolicyStatement({
+          sid: `AllowAccount${accountId}`,
+          actions: ['events:PutEvents'],
+          principals: [new iam.AccountPrincipal(accountId)],
+          resources: [sagemakerMonitoringEventbus.eventBusArn],
+        })
+      );
+    });
 
     const sagemakerStageChangeEventRule = new events.Rule(
       this, 'sagemakerStageChangeEventRule',
