@@ -4,11 +4,11 @@ WORKSPACE=$(shell pwd)
 
 .PHONY: deploy-management-stackset
 deploy-management-stackset:
-	cd management-stack && CDK_DEPLOY_ACCOUNT=${MANAGEMENT_ACCOUNT} cdk deploy
+	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${MANAGEMENT_ACCOUNT} cdk deploy ManagementStackStack
 
 .PHONY: synth-management-stackset
 synth-management-stackset:
-	cd management-stack && CDK_DEPLOY_ACCOUNT=${MANAGEMENT_ACCOUNT} cdk synth
+	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${MANAGEMENT_ACCOUNT} cdk synth ManagementStackStack
 
 .PHONY: deploy-monitoring-account-infra
 deploy-monitoring-account-infra:

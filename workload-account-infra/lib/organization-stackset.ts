@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import {Parameters} from './constants';
 
-type ManagementInfraProps = {
+type OrganizationStacksetProps = {
   monitoringAccountId: string;
   monitoringAccountRoleName: string;
   monitoringAccountSinkArn: string;
@@ -16,8 +16,8 @@ type ManagementInfraProps = {
   stackSetTargetRegions: string[];
 } & cdk.StackProps;
 
-export class ManagementStackStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: ManagementInfraProps) {
+export class OrganizationStackset extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: OrganizationStacksetProps) {
     super(scope, id, props);
 
     const {
