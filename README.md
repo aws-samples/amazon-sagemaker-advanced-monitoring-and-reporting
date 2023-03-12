@@ -27,9 +27,9 @@ In our solution, the required resources in the source workload accounts are depl
 * Clone this repo to local workspace. Copy `.env.sample` file to `.env`, and update monitoring account ID and region to the corresponding values. If you are using AWS Organizations, you can set the management account ID in `.env` file. The management account ID will be used later when deploying the workload account infra.
   
 * Deploy the CDK monitoring-account-infra-stack. 
-  * (If AWS Organizations is in use) Obtain the AWS Organizations path where the SageMaker workload accounts are located. Example: "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*"
   * Duplicate `cdk.context.json.sample` in `monitoring-account-infra` folder and rename to `cdk.context.json`
-  * Update the "org-path-to-allow" attribute in the `cdk.context.json` to the value obtained from previous step
+  * (If AWS Organizations is in use) Obtain the AWS Organizations path where the SageMaker workload accounts are located. Example: "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*". Update the `org-path-to-allow` attribute in the `cdk.context.json` to the value obtained from previous step
+  * (If AWS Organizations is not used) Update the `accounts-to-allow` attribute to include a list of workload accounts ID that you would like to enable monitoring for.
   * Run make target
     ```
     make deploy-monitoring-account-infra
