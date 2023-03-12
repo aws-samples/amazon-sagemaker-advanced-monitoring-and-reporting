@@ -1,3 +1,7 @@
 {
-  "org-path-to-allow": "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*"
+  "org-path-to-allow": "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*", // Delete this line if AWS Organizations is not used
+  "accounts-to-allow": [
+    "111111111111",
+    "222222222222"
+  ]
 }
