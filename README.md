@@ -36,8 +36,24 @@ In our solution, the required resources in the source workload accounts are depl
     * MonitoringAccountEventbusARN 
     * MonitoringAccountRoleName
 
-* Deploy the source account stackset. This is done using the management-stack CDK code to deploy stackset into the AWS organization's management account.
-  * Duplicate cdk.context.json.sample in management-stack folder and rename to cdk.context.json. Update the content of cdk.context.json using the values obtained above
+* Deploy the workload account observability infrastructure. Here, we provide 2 ways to deploy the workload account infra. For users with limited number of accounts, you can directly deployment the workload infra stack into the individual account. Alternatively, deploy a CloudFormation StackSet into a management account which then automatically deploys the stack into targeted account. With the second method, it can also be used together with AWS Organization to target the workload infra stack deployment to organization units (OUs). The deployment steps for both scenario are described below.
+  * Deploy into a single workload account
+    * Change directory into the `workload-account-infra` folder
+    * Create cdk.context.json in `workload-account-infra` folder with below structure. Set each attribute's value to be the ones from previous steps
+    ```
+    {
+      "monitoring-account-id": "",
+      "monitoring-account-sink-arn": "",
+      "monitoring-account-role-name": "",
+      "monitoring-account-eventbus-arn": ""
+    }
+    ```
+    * Deploy CDK application stack `WorkloadAccountInfraStack`. Replace the `<workload_account_awscli_profile>` with the actual awscli profile name for the account you are deploying to.
+      ```
+      cdk deploy WorkloadAccountInfraStack --profile <workload_account_awscli_profile>
+      ```
+  * Deploy with CloudFormation StackSet and AWS Organization
+    * Duplicate cdk.context.json.sample in `WorkloadAccountInfraStack` folder and rename to cdk.context.json. Update the content of cdk.context.json using the values obtained above
     ```
     {
       "monitoring-account-id": "",
