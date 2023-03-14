@@ -186,26 +186,26 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       }
     )
 
-    const customWidgetLambda = new PythonFunction(
-      this, 'customWidgetLambda', {
-        entry: path.join(__dirname, 'functions', 'custom_widget'),
-        runtime: lambda.Runtime.PYTHON_3_9,
-        index: 'index.py',
-        handler: 'lambda_handler',
-        timeout: Duration.minutes(1),
-        environment: {
-          "JOBHISTORY_TABLE": sagemakerJobHistoryTable.tableName
-        }
-      }
-    );
-    customWidgetLambda.addToRolePolicy(
-      new iam.PolicyStatement(
-        {
-          actions: ["dynamodb:query"],
-          resources: ["*"]
-        },
-      )
-    );
+    // const customWidgetLambda = new PythonFunction(
+    //   this, 'customWidgetLambda', {
+    //     entry: path.join(__dirname, 'functions', 'custom_widget'),
+    //     runtime: lambda.Runtime.PYTHON_3_9,
+    //     index: 'index.py',
+    //     handler: 'lambda_handler',
+    //     timeout: Duration.minutes(1),
+    //     environment: {
+    //       "JOBHISTORY_TABLE": sagemakerJobHistoryTable.tableName
+    //     }
+    //   }
+    // );
+    // customWidgetLambda.addToRolePolicy(
+    //   new iam.PolicyStatement(
+    //     {
+    //       actions: ["dynamodb:query"],
+    //       resources: ["*"]
+    //     },
+    //   )
+    // );
     
     // const customWidget = new cloudwatch.CustomWidget({
     //   functionArn: customWidgetLambda.functionArn,
@@ -228,6 +228,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     // });
     // sagemakerMonitoringDashboard.addWidgets(customWidget);
 
+    // Processing Job
     sagemakerMonitoringDashboard.addWidgets(
       new cloudwatch.GraphWidget({
         title: "Total Processing Job Count",
@@ -270,6 +271,55 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
             'filter `detail-type` like /SageMaker Processing Job State Change/',
             'filter detail.ProcessingJobStatus not like /InProgress/',
             'fields account, detail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
+          ],
+          width:24,
+        }
+      )
+    );
+
+    // Training Job
+    sagemakerMonitoringDashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: "Total Training Job Count",
+        stacked: false,
+        width: 12,
+        left:[
+          new cloudwatch.MathExpression({
+            expression: `SELECT SUM(TrainingJobCount_Total) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
+            searchRegion: this.region,
+            label: "Account"
+          })
+        ]
+      })
+    );
+
+    sagemakerMonitoringDashboard.addWidgets(
+      new cloudwatch.GraphWidget({
+        title: "Failed Training Job Count",
+        stacked: false,
+        width: 12,
+        height:6,
+        right:[
+          new cloudwatch.MathExpression({
+            expression: `SELECT SUM(TrainingJobCount_Failed) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
+            searchRegion: this.region,
+            label: "Account"
+          })
+        ]
+      })
+    );
+    
+    sagemakerMonitoringDashboard.addWidgets(
+      new cloudwatch.LogQueryWidget(
+        {
+          title: 'SageMaker Training Job History',
+          logGroupNames: [sagemakerServiceEventsLogGroup.logGroupName],
+          view: cloudwatch.LogQueryVisualizationType.TABLE,
+          queryLines: [
+            'sort @timestamp desc',
+            'filter `detail-type` like /SageMaker Training Job State Change/',
+            'filter detail.TrainingJobStatus not like /InProgress/',
+            'fields account, detail.TrainingJobName as jobname,  detail.TrainingJobStatus as status, fromMillis(detail.TrainingStartTime) as start_time, (detail.TrainingEndTime-detail.TrainingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
           ],
           width:24,
         }

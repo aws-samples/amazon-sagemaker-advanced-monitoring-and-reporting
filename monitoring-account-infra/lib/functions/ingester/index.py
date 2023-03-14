@@ -49,7 +49,15 @@ def lambda_handler(event, context, metrics):
         elif event_type == SAGEMAKER_STAGE_CHANGE_EVENT.TRAINING_JOB:
             item["sk"] = detail.get("TrainingJobName")
             item["status"] = detail.get("TrainingJobStatus")
+            metrics.set_property("TrainingJobArn", detail.get("TrainingJobArn"))
 
+            if detail.get("FailureReason"):
+                item["failureReason"] = detail.get("FailureReason")
+            
+            if job_status and job_status != "InProgress":
+                metrics.put_metric("TrainingJobCount_Total", 1, "Count")
+                metrics.put_metric("TrainingJobCount_"+job_status, 1, "Count")
+                metrics.put_metric("TrainingJob_Duration", detail.get("TrainingEndTime") - detail.get("TrainingStartTime"), "Milliseconds")
         else:
             print("Unhandled event type")
         
