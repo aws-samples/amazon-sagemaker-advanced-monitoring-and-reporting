@@ -9,7 +9,7 @@ from constants import SAGEMAKER_STAGE_CHANGE_EVENT
 
 dynamodb = boto3.resource('dynamodb')
 cw = boto3.client('cloudwatch')
-#table = dynamodb.Table(os.getenv('JOBHISTORY_TABLE'))
+table = dynamodb.Table(os.getenv('JOBHISTORY_TABLE'))
 
 @metric_scope
 def lambda_handler(event, context, metrics):
@@ -68,15 +68,16 @@ def lambda_handler(event, context, metrics):
                     start_time=datetime.datetime.utcfromtimestamp(float(detail.get("TrainingStartTime"))/1000),
                     end_time=datetime.datetime.utcfromtimestamp(float(detail.get("TrainingEndTime"))/1000)
                 )
+                item["utilization"] = job_metrics
                 for metric_name, metric_value in job_metrics.items():
                     metrics.put_metric("TrainingJob_"+metric_name, metric_value, "Percent")
         else:
             print("Unhandled event type")
         
-        # response = table.put_item(
-        #     Item=item,
-        #     ReturnValues='NONE'
-        # )
+        response = table.put_item(
+            Item=item,
+            ReturnValues='NONE'
+        )
         
     return None
 
