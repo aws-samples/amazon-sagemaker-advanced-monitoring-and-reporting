@@ -20,7 +20,6 @@ def lambda_handler(event, context, metrics):
     event_type = None
     try:
         event_type = SAGEMAKER_STAGE_CHANGE_EVENT(event["detail-type"])
-        print("%s event received" % event_type)
     except ValueError as e:
         print("Unexpected event received")
 
@@ -31,6 +30,7 @@ def lambda_handler(event, context, metrics):
         item = {"pk": event_type.name, "account": account, "metadata": json.dumps(detail)}
         metrics.set_dimensions({"account": account, "jobType": event_type.name}, use_default=False)
         metrics.set_property("JobType", event_type.value)
+        metrics.set_property("EMF_LOG", True)
         
         if event_type == SAGEMAKER_STAGE_CHANGE_EVENT.PROCESSING_JOB:
             item["sk"] = detail.get("ProcessingJobName")
