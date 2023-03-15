@@ -174,6 +174,14 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         },
       )
     );
+    ingesterLambda.addToRolePolicy(
+      new iam.PolicyStatement(
+        {
+          actions: ["cloudwatch:GetMetricData"],
+          resources: ['*']
+        }
+      )
+    );
 
     sagemakerStageChangeEventRule.addTarget(new targets.LambdaFunction(ingesterLambda));
 
