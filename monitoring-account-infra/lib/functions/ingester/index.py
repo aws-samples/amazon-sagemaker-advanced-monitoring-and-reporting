@@ -27,8 +27,6 @@ def lambda_handler(event, context, metrics):
     if event_type:
         account = event["account"]
         detail = event["detail"]
-        # for resource in event["resources"]:
-        #     print(parse_arn(resource))
         
         item = {"pk": event_type.name, "account": account, "metadata": json.dumps(detail)}
         metrics.set_dimensions({"account": account, "jobType": event_type.name}, use_default=False)
@@ -81,24 +79,6 @@ def lambda_handler(event, context, metrics):
         # )
         
     return None
-
-# def parse_arn(arn):
-#     # http://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html
-#     elements = arn.split(':', 5)
-#     result = {
-#         'arn': elements[0],
-#         'partition': elements[1],
-#         'service': elements[2],
-#         'region': elements[3],
-#         'account': elements[4],
-#         'resource': elements[5],
-#         'resource_type': None
-#     }
-#     if '/' in result['resource']:
-#         result['resource_type'], result['resource'] = result['resource'].split('/',1)
-#     elif ':' in result['resource']:
-#         result['resource_type'], result['resource'] = result['resource'].split(':',1)
-#     return result
 
 if __name__ == '__main__':
     print("No default defined")
