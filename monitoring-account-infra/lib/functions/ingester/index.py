@@ -1,12 +1,15 @@
 import json
 import boto3
+import datetime
 import os
 from aws_embedded_metrics import metric_scope
+from utils.metrics_retriever import search_metrics
 
 from constants import SAGEMAKER_STAGE_CHANGE_EVENT
 
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table(os.getenv('JOBHISTORY_TABLE'))
+cw = boto3.client('cloudwatch')
+#table = dynamodb.Table(os.getenv('JOBHISTORY_TABLE'))
 
 @metric_scope
 def lambda_handler(event, context, metrics):
@@ -58,6 +61,8 @@ def lambda_handler(event, context, metrics):
                 metrics.put_metric("TrainingJobCount_Total", 1, "Count")
                 metrics.put_metric("TrainingJobCount_"+job_status, 1, "Count")
                 metrics.put_metric("TrainingJob_Duration", detail.get("TrainingEndTime") - detail.get("TrainingStartTime"), "Milliseconds")
+                
+                search_metrics("SEARCH('{/aws/sagemaker/TrainingJobs,Host} "+ detail.get("TrainingJobName") +"', 'Maximum', 300)", account=account)
         else:
             print("Unhandled event type")
         
@@ -85,3 +90,6 @@ def parse_arn(arn):
     elif ':' in result['resource']:
         result['resource_type'], result['resource'] = result['resource'].split(':',1)
     return result
+
+if __name__ == '__main__':
+    print("No default defined")

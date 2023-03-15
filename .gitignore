@@ -1,2 +1,4 @@
 **/cdk.context.json
 .env
+
+**/__pycache__

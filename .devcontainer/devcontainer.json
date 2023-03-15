@@ -7,7 +7,7 @@
     }
   },
   "mounts": [
-    "source=management-stack,target=${containerWorkspaceFolder}/management-stack/node_modules,type=volume",
+    "source=workload-account-infra,target=${containerWorkspaceFolder}/workload-account-infra/node_modules,type=volume",
     "source=monitoring-account-infra,target=${containerWorkspaceFolder}/monitoring-account-infra/node_modules,type=volume",
   ],
   "postStartCommand": "post-start",

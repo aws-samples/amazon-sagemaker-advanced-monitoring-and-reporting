@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+WORKSPACE=$(pwd)
+
+for f in monitoring-account-infra/lib/functions/*
+do
+  echo "Installing pip dependencies on ${f}"
+  cd "${WORKSPACE}/${f}"
+  pip install -r requirements.txt
+done
