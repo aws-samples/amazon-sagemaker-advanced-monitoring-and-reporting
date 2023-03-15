@@ -74,7 +74,7 @@ def lambda_handler(event, context, metrics):
         else:
             print("Unhandled event type")
         
-        response = table.put_item(
+        table.put_item(
             Item=item,
             ReturnValues='NONE'
         )
