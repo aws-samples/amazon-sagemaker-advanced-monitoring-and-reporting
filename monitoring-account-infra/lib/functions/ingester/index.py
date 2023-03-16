@@ -1,6 +1,6 @@
 import json
 import boto3
-import datetime
+from datetime import datetime, timedelta
 import os
 from aws_embedded_metrics import metric_scope
 
@@ -55,8 +55,8 @@ def lambda_handler(event, context, metrics):
                 job_metrics = search_metrics(
                     search_pattern,
                     account=account,
-                    start_time=datetime.datetime.utcfromtimestamp(float(detail.get("ProcessingStartTime"))/1000),
-                    end_time=datetime.datetime.utcfromtimestamp(float(detail.get("ProcessingEndTime"))/1000)
+                    start_time=datetime.utcfromtimestamp(float(detail.get("CreationTime"))/1000),
+                    end_time=datetime.utcfromtimestamp(float(detail.get("ProcessingEndTime"))/1000)
                 )
                 # item["utilization"] = job_metrics
                 for metric_name, metric_value in job_metrics.items():
@@ -84,8 +84,8 @@ def lambda_handler(event, context, metrics):
                 job_metrics = search_metrics(
                     search_pattern,
                     account=account,
-                    start_time=datetime.datetime.utcfromtimestamp(float(detail.get("TrainingStartTime"))/1000),
-                    end_time=datetime.datetime.utcfromtimestamp(float(detail.get("TrainingEndTime"))/1000)
+                    start_time=datetime.utcfromtimestamp(float(detail.get("CreationTime"))/1000),
+                    end_time=datetime.utcfromtimestamp(float(detail.get("TrainingEndTime"))/1000)
                 )
                 # item["utilization"] = job_metrics
                 for metric_name, metric_value in job_metrics.items():

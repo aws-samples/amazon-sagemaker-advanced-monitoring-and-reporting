@@ -19,6 +19,9 @@ def search_metrics(search_expression, account=None, start_time=datetime.now()-ti
     StartTime=start_time,
     EndTime=end_time
   )
+  print(start_time)
+  print(end_time)
+  print(response)
   result = {}
   for metric in response['MetricDataResults']:
     result[metric['Label']] = float(metric['Values'][0])
