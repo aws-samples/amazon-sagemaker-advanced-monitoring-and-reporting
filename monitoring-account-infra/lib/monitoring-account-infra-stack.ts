@@ -156,14 +156,14 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         entry: path.join(__dirname, 'functions', 'ingester'),
         runtime: lambda.Runtime.PYTHON_3_9,
         index: 'index.py',
-        handler: 'lambda_handler',
+        handler: 'lambda_handler',        
         environment: {
           "JOBHISTORY_TABLE": sagemakerJobHistoryTable.tableName,
           "AWS_EMF_NAMESPACE": AWS_EMF_NAMESPACE,
           "AWS_EMF_LOG_GROUP_NAME": AWS_EMF_LOG_GROUP_NAME,
           "AWS_EMF_SERVICE_TYPE": AWS_EMF_SERVICE_TYPE,
           "AWS_EMF_SERVICE_NAME": AWS_EMF_SERVICE_NAME,
-        }
+        },
       }
     );
     ingesterLambda.addToRolePolicy(
@@ -272,12 +272,15 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       new cloudwatch.LogQueryWidget(
         {
           title: 'SageMaker Processing Job History',
-          logGroupNames: [sagemakerServiceEventsLogGroup.logGroupName],
+          logGroupNames: [ingesterLambda.logGroup.logGroupName],
           view: cloudwatch.LogQueryVisualizationType.TABLE,
           queryLines: [
             'sort @timestamp desc',
             'filter EMF_LOG == "1"',
-            'fields account, JobName, Status, fromMillis(StartTime), ProcessingJob_Duration/1000, FailureReason',
+            'filter @message like "SageMaker Processing Job State Change"',
+            'filter Status not like "InProgress"',
+            'fields account, JobName, Status, fromMillis(StartTime), ProcessingJob_Duration/1000 as Duration, FailureReason',
+            'fields ProcessingJob_CPUUtilization, ProcessingJob_MemoryUtilization, ProcessingJob_DiskUtilization, ProcessingJob_GPUMemoryUtilization, ProcessingJob_GPUUtilization',
           ],
           width:24,
         }
@@ -320,12 +323,15 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       new cloudwatch.LogQueryWidget(
         {
           title: 'SageMaker Training Job History',
-          logGroupNames: [sagemakerServiceEventsLogGroup.logGroupName],
+          logGroupNames: [ingesterLambda.logGroup.logGroupName],
           view: cloudwatch.LogQueryVisualizationType.TABLE,
           queryLines: [
             'sort @timestamp desc',
             'filter EMF_LOG == "1"',
-            'fields account, JobName, Status, fromMillis(StartTime), TrainingJob_Duration/1000, FailureReason',
+            'filter @message like "SageMaker Training Job State Change"',
+            'filter Status not like "InProgress"',
+            'fields account, JobName, Status, fromMillis(StartTime), TrainingJob_Duration/1000 as Duration, FailureReason',
+            'fields TrainingJob_CPUUtilization, TrainingJob_MemoryUtilization, TrainingJob_DiskUtilization, TrainingJob_GPUMemoryUtilization, TrainingJob_GPUUtilization',
           ],
           width:24,
         }

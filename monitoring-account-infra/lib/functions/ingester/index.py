@@ -50,7 +50,17 @@ def lambda_handler(event, context, metrics):
                 metrics.put_metric("ProcessingJobCount_Total", 1, "Count")
                 metrics.put_metric("ProcessingJobCount_"+job_status, 1, "Count")
                 metrics.put_metric("ProcessingJob_Duration", detail.get("ProcessingEndTime") - detail.get("ProcessingStartTime"), "Milliseconds")
-                
+
+                search_pattern = "SEARCH('{/aws/sagemaker/ProcessingJobs,Host} "+ detail.get("ProcessingJobName") +"', 'Maximum')"
+                job_metrics = search_metrics(
+                    search_pattern,
+                    account=account,
+                    start_time=datetime.datetime.utcfromtimestamp(float(detail.get("ProcessingStartTime"))/1000),
+                    end_time=datetime.datetime.utcfromtimestamp(float(detail.get("ProcessingEndTime"))/1000)
+                )
+                # item["utilization"] = job_metrics
+                for metric_name, metric_value in job_metrics.items():
+                    metrics.put_metric("TrainingJob_"+metric_name, metric_value, "Percent")
 
         elif event_type == SAGEMAKER_STAGE_CHANGE_EVENT.TRAINING_JOB:
             # item["sk"] = detail.get("TrainingJobName")
