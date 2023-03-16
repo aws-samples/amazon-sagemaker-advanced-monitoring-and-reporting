@@ -3,6 +3,7 @@ import boto3
 import datetime
 import os
 from aws_embedded_metrics import metric_scope
+
 from utils.metrics_retriever import search_metrics
 
 from constants import SAGEMAKER_STAGE_CHANGE_EVENT
@@ -36,8 +37,10 @@ def lambda_handler(event, context, metrics):
             # item["sk"] = detail.get("ProcessingJobName")
             job_status = detail.get("ProcessingJobStatus")
             # item["status"] = job_status
-            metrics.set_property("ProcessingJobName", detail.get("ProcessingJobName"))
+            metrics.set_property("JobName", detail.get("ProcessingJobName"))
             metrics.set_property("ProcessingJobArn", detail.get("ProcessingJobArn"))
+            metrics.set_property("Status", job_status)
+            metrics.set_property("StartTime", detail.get("ProcessingStartTime"))
 
             if detail.get("FailureReason"):
                 metrics.set_property("FailureReason", detail.get("FailureReason"))
@@ -53,8 +56,10 @@ def lambda_handler(event, context, metrics):
             # item["sk"] = detail.get("TrainingJobName")
             job_status = detail.get("TrainingJobStatus")
             # item["status"] = job_status
-            metrics.set_property("TrainingJobName", detail.get("TrainingJobName"))
+            metrics.set_property("JobName", detail.get("TrainingJobName"))
             metrics.set_property("TrainingJobArn", detail.get("TrainingJobArn"))
+            metrics.set_property("Status", job_status)
+            metrics.set_property("StartTime", detail.get("TrainingStartTime"))
 
             if detail.get("FailureReason"):
                 metrics.set_property("FailureReason", detail.get("FailureReason"))

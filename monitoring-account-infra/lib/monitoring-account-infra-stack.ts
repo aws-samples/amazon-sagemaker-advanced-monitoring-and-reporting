@@ -276,9 +276,8 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
           view: cloudwatch.LogQueryVisualizationType.TABLE,
           queryLines: [
             'sort @timestamp desc',
-            'filter `detail-type` like /SageMaker Processing Job State Change/',
-            'filter detail.ProcessingJobStatus not like /InProgress/',
-            'fields account, detail.ProcessingJobName as jobname,  detail.ProcessingJobStatus as status, fromMillis(detail.ProcessingStartTime) as start_time, (detail.ProcessingEndTime-detail.ProcessingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
+            'filter EMF_LOG == "1"',
+            'fields account, JobName, Status, fromMillis(StartTime), ProcessingJob_Duration/1000, FailureReason',
           ],
           width:24,
         }
@@ -325,9 +324,8 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
           view: cloudwatch.LogQueryVisualizationType.TABLE,
           queryLines: [
             'sort @timestamp desc',
-            'filter `detail-type` like /SageMaker Training Job State Change/',
-            'filter detail.TrainingJobStatus not like /InProgress/',
-            'fields account, detail.TrainingJobName as jobname,  detail.TrainingJobStatus as status, fromMillis(detail.TrainingStartTime) as start_time, (detail.TrainingEndTime-detail.TrainingStartTime)/1000 as duration_in_seconds, detail.FailureReason as failure_reason'
+            'filter EMF_LOG == "1"',
+            'fields account, JobName, Status, fromMillis(StartTime), TrainingJob_Duration/1000, FailureReason',
           ],
           width:24,
         }
