@@ -276,11 +276,11 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
           view: cloudwatch.LogQueryVisualizationType.TABLE,
           queryLines: [
             'sort @timestamp desc',
-            'filter EMF_LOG == "1"',
-            'filter @message like "SageMaker Processing Job State Change"',
-            'filter Status not like "InProgress"',
-            'fields account, JobName, Status, fromMillis(StartTime), ProcessingJob_Duration/1000 as Duration, FailureReason',
-            'fields ProcessingJob_CPUUtilization, ProcessingJob_MemoryUtilization, ProcessingJob_DiskUtilization, ProcessingJob_GPUMemoryUtilization, ProcessingJob_GPUUtilization',
+            'filter DashboardQuery == "True"',
+            'filter JobType == "PROCESSING_JOB"',
+            'fields Account, JobName, Status, InstanceCount, InstanceType, Host, fromMillis(StartTime) as StartTime, FailureReason',
+            'fields Metrics.CPUUtilization as CPUUtil, Metrics.DiskUtilization as DiskUtil, Metrics.MemoryUtilization as MemoryUtil',
+            'fields Metrics.GPUMemoryUtilization as GPUMemoeyUtil, Metrics.GPUUtilization as GPUUtil',
           ],
           width:24,
         }
@@ -327,11 +327,11 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
           view: cloudwatch.LogQueryVisualizationType.TABLE,
           queryLines: [
             'sort @timestamp desc',
-            'filter EMF_LOG == "1"',
-            'filter @message like "SageMaker Training Job State Change"',
-            'filter Status not like "InProgress"',
-            'fields account, JobName, Status, fromMillis(StartTime), TrainingJob_Duration/1000 as Duration, FailureReason',
-            'fields TrainingJob_CPUUtilization, TrainingJob_MemoryUtilization, TrainingJob_DiskUtilization, TrainingJob_GPUMemoryUtilization, TrainingJob_GPUUtilization',
+            'filter DashboardQuery == "True"',
+            'filter JobType == "TRAINING_JOB"',
+            'fields Account, JobName, Status, InstanceCount, InstanceType, Host, fromMillis(StartTime) as StartTime, FailureReason',
+            'fields Metrics.CPUUtilization as CPUUtil, Metrics.DiskUtilization as DiskUtil, Metrics.MemoryUtilization as MemoryUtil',
+            'fields Metrics.GPUMemoryUtilization as GPUMemoeyUtil, Metrics.GPUUtilization as GPUUtil',
           ],
           width:24,
         }
