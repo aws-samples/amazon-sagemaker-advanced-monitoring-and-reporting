@@ -14,7 +14,6 @@ In the centralized monitoring account, the events are captured by a EventBrige r
 1. Auditing purpose. 
 2. Converting to metric, certain log format as ingested as [EMF](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format.html)
 3. Analyzing log data with [CloudWatch Log Insights queries](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html). CloudWatch Logs Insights enables you to interactively search and analyze your log data in Amazon CloudWatch Logs. You can perform queries to help you more efficiently and effectively respond to operational issues. If an issue occurs, you can use CloudWatch Logs Insights to identify potential causes and validate deployed fixes.
-* (Delete)DynamoDB - With a help of an event parsing Lambda function, the events captured by EventBridge rule can be transformed into more structured data entries and stored in a DynamoDB. This can then further supports more advanced monitoring tool, such as CloudWatch Dashboard custom widget, Amazon managed service for Grafana or even fronted by an API for external tool integration (Please note the integration with other monitoring tool with the DynamoDB is not part of the solution).
 
 ### CloudWatch Cross-Account Observability ???
 The solution uses native CloudWatch Cross-Account Observability to achieve metrics, logs and traces access. In order to enable this, necessary permission and resources needs to be created in the source workload accounts.
