@@ -6,10 +6,8 @@ import {
   aws_cloudwatch as cloudwatch,
   aws_iam as iam,
   aws_lambda as lambda,
-  aws_dynamodb as ddb,
   CfnOutput,
   RemovalPolicy,
-  Duration,
 } from 'aws-cdk-lib';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { Construct } from 'constructs';
@@ -141,15 +139,6 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     );
 
     sagemakerAPIEventRule.addTarget(new targets.CloudWatchLogGroup(sagemakerAPIEventsLogGroup));
-    
-    // Create DDB and Lambda
-    const sagemakerJobHistoryTable = new ddb.Table(
-      this,'sagemakerJobHistoryTable', {
-        partitionKey: {name: 'pk', type: ddb.AttributeType.STRING},
-        sortKey: {name:'sk', type:ddb.AttributeType.STRING},
-        billingMode: ddb.BillingMode.PAY_PER_REQUEST
-      }
-    );
 
     const ingesterLambda = new PythonFunction(
       this, 'ingesterLambda', {
@@ -158,21 +147,12 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         index: 'index.py',
         handler: 'lambda_handler',        
         environment: {
-          "JOBHISTORY_TABLE": sagemakerJobHistoryTable.tableName,
           "AWS_EMF_NAMESPACE": AWS_EMF_NAMESPACE,
           "AWS_EMF_LOG_GROUP_NAME": AWS_EMF_LOG_GROUP_NAME,
           "AWS_EMF_SERVICE_TYPE": AWS_EMF_SERVICE_TYPE,
           "AWS_EMF_SERVICE_NAME": AWS_EMF_SERVICE_NAME,
         },
       }
-    );
-    ingesterLambda.addToRolePolicy(
-      new iam.PolicyStatement(
-        {
-          actions: ["dynamodb:PutItem"],
-          resources: [sagemakerJobHistoryTable.tableArn]
-        },
-      )
     );
     ingesterLambda.addToRolePolicy(
       new iam.PolicyStatement(
@@ -193,48 +173,6 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         widgets: []
       }
     )
-
-    // const customWidgetLambda = new PythonFunction(
-    //   this, 'customWidgetLambda', {
-    //     entry: path.join(__dirname, 'functions', 'custom_widget'),
-    //     runtime: lambda.Runtime.PYTHON_3_9,
-    //     index: 'index.py',
-    //     handler: 'lambda_handler',
-    //     timeout: Duration.minutes(1),
-    //     environment: {
-    //       "JOBHISTORY_TABLE": sagemakerJobHistoryTable.tableName
-    //     }
-    //   }
-    // );
-    // customWidgetLambda.addToRolePolicy(
-    //   new iam.PolicyStatement(
-    //     {
-    //       actions: ["dynamodb:query"],
-    //       resources: ["*"]
-    //     },
-    //   )
-    // );
-    
-    // const customWidget = new cloudwatch.CustomWidget({
-    //   functionArn: customWidgetLambda.functionArn,
-    //   title: 'My lambda baked widget',
-    //   width: 12,
-    //   height: 12,
-    //   params: {
-    //     service: 'DynamoDB',
-    //     api: "Query",
-    //     params: {
-    //       TableName: sagemakerJobHistoryTable.tableName,
-    //       ExpressionAttributeValues: {
-    //         ':v1': {
-    //             'S': 'PROCESSING_JOB',
-    //         },
-    //       },
-    //       KeyConditionExpression: 'pk = :v1',
-    //     },
-    //   },
-    // });
-    // sagemakerMonitoringDashboard.addWidgets(customWidget);
 
     // Processing Job
     const processingJobCountWidget = new cloudwatch.GraphWidget({
