@@ -11,6 +11,7 @@ def search_metrics(search_expression, account=None, start_time=datetime.now()-ti
         'Expression': search_expression,
         'ReturnData': True,
         'Period': period,
+        'Label': "${PROP('Dim.Host')}/${PROP('MetricName')}"
     }
     if account:
         query['AccountId'] = account
@@ -35,17 +36,10 @@ def search_metrics(search_expression, account=None, start_time=datetime.now()-ti
     return result
 
 def parse_label(label):
-    labels = label.split(" ")
-    if len(labels) == 1:
-        return {
-            "job": None,
-            "host": None,
-            "metric": label
-        }
-    job = labels[0].split("/")
-    job.append(labels[1])
+    # The expected metric label format is <job_name>/<host_name>/<metric_name>
+    sub_labels = label.split("/")
     return {
-        "job": job[0],
-        "host": job[1],
-        "metric": job[2]
+        "job": sub_labels[0],
+        "host": sub_labels[1],
+        "metric": sub_labels[2]
     }
