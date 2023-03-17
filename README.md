@@ -4,20 +4,17 @@ A solution to enable centralized monitoring of SageMaker jobs and activities acr
 
 ## Solution Architecture
 ![Solution Architecture](Architecture.png?raw=true "Solution Architecture")
-
-There are 2 parts in this solution.
 ### Centralized Events Collection
 Amazon SageMaker has native integration with the Amazon EventBridge service and can generates various service events. The list of SageMaker service events through EventBridge can be found [here](https://docs.aws.amazon.com/sagemaker/latest/dg/automating-sagemaker-with-eventbridge.html). In addition to the service events, CloudTrail service captures API servers for various AWS services, which also streams to EventBridge so that can be utilized by many downstream automation or monitoring use cases. In our solution, we uses EventBridge rules in the workload accounts to stream both SageMaker service events and API events to the monitoring account's EventBus for centralized monitoring.
 
-In the centralized monitoring account, the events are captured by a EventBrige rule and further processed into in different targets:
+In the centralized monitoring account, the events are captured by an EventBrige rule and further processed into in different targets:
 * CloudWatch Log Group - all events are stored in here has below purpose:
-1. Auditing purpose. 
-2. Converting to metric, certain log format as ingested as [EMF](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format.html)
-3. Analyzing log data with [CloudWatch Log Insights queries](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html). CloudWatch Logs Insights enables you to interactively search and analyze your log data in Amazon CloudWatch Logs. You can perform queries to help you more efficiently and effectively respond to operational issues. If an issue occurs, you can use CloudWatch Logs Insights to identify potential causes and validate deployed fixes.
-
-### CloudWatch Cross-Account Observability ???
-The solution uses native CloudWatch Cross-Account Observability to achieve metrics, logs and traces access. In order to enable this, necessary permission and resources needs to be created in the source workload accounts.
-
+  * Auditing purpose.
+  * Analyzing log data with [CloudWatch Log Insights queries](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html). CloudWatch Logs Insights enables you to interactively search and analyze your log data in Amazon CloudWatch Logs. You can perform queries to help you more efficiently and effectively respond to operational issues. If an issue occurs, you can use CloudWatch Logs Insights to identify potential causes and validate deployed fixes.
+  * Support use of CloudWatch Insights Query Widget for highlevel operation CloudWatch dashboard
+* Lambda Function
+  * Perform custom logic to augment the SageMaker service events. One example is to perform metric query on SageMaker job hosts's utilization metrics when a job completion event is received. This example is supported by the native CloudWatch Cross-Account Observability feature to achieve cross-account metrics, logs and traces access.
+  * Convert event information to metric, certain log format as ingested as [EMF](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format.html)
 
 ## Steps:
 
