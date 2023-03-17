@@ -237,106 +237,108 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     // sagemakerMonitoringDashboard.addWidgets(customWidget);
 
     // Processing Job
-    sagemakerMonitoringDashboard.addWidgets(
-      new cloudwatch.GraphWidget({
-        title: "Total Processing Job Count",
-        stacked: false,
-        width: 12,
-        left:[
-          new cloudwatch.MathExpression({
-            expression: `SELECT SUM(ProcessingJobCount_Total) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
-            searchRegion: this.region,
-            label: "Account"
-          })
-        ]
-      })
-    );
-
-    sagemakerMonitoringDashboard.addWidgets(
-      new cloudwatch.GraphWidget({
-        title: "Failed Processing Job Count",
-        stacked: false,
-        width: 12,
-        height:6,
-        right:[
-          new cloudwatch.MathExpression({
-            expression: `SELECT SUM(ProcessingJobCount_Failed) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
-            searchRegion: this.region,
-            label: "Account"
-          })
-        ]
-      })
-    );
+    const processingJobCountWidget = new cloudwatch.GraphWidget({
+      title: "Total Processing Job Count",
+      stacked: false,
+      width: 12,
+      height: 6,
+      left:[
+        new cloudwatch.MathExpression({
+          expression: `SELECT SUM(ProcessingJobCount_Total) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
+          searchRegion: this.region,
+          label: "Account"
+        })
+      ]
+    });
+    processingJobCountWidget.position(0,0)
+    const processingJobFailedWidget = new cloudwatch.GraphWidget({
+      title: "Failed Processing Job Count",
+      stacked: false,
+      width: 12,
+      height:6,
+      right:[
+        new cloudwatch.MathExpression({
+          expression: `SELECT SUM(ProcessingJobCount_Failed) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
+          searchRegion: this.region,
+          label: "Account"
+        })
+      ]
+    })
+    processingJobFailedWidget.position(12,0)
     
-    sagemakerMonitoringDashboard.addWidgets(
-      new cloudwatch.LogQueryWidget(
-        {
-          title: 'SageMaker Processing Job History',
-          logGroupNames: [ingesterLambda.logGroup.logGroupName],
-          view: cloudwatch.LogQueryVisualizationType.TABLE,
-          queryLines: [
-            'sort @timestamp desc',
-            'filter DashboardQuery == "True"',
-            'filter JobType == "PROCESSING_JOB"',
-            'fields Account, JobName, Status, Duration, InstanceCount, InstanceType, Host, fromMillis(StartTime) as StartTime, FailureReason',
-            'fields Metrics.CPUUtilization as CPUUtil, Metrics.DiskUtilization as DiskUtil, Metrics.MemoryUtilization as MemoryUtil',
-            'fields Metrics.GPUMemoryUtilization as GPUMemoeyUtil, Metrics.GPUUtilization as GPUUtil',
-          ],
-          width:24,
-        }
-      )
+    const processingJobInsightsQueryWidget = new cloudwatch.LogQueryWidget(
+      {
+        title: 'SageMaker Processing Job History',
+        logGroupNames: [ingesterLambda.logGroup.logGroupName],
+        view: cloudwatch.LogQueryVisualizationType.TABLE,
+        queryLines: [
+          'sort @timestamp desc',
+          'filter DashboardQuery == "True"',
+          'filter JobType == "PROCESSING_JOB"',
+          'fields Account, JobName, Status, Duration, InstanceCount, InstanceType, Host, fromMillis(StartTime) as StartTime, FailureReason',
+          'fields Metrics.CPUUtilization as CPUUtil, Metrics.DiskUtilization as DiskUtil, Metrics.MemoryUtilization as MemoryUtil',
+          'fields Metrics.GPUMemoryUtilization as GPUMemoeyUtil, Metrics.GPUUtilization as GPUUtil',
+        ],
+        width:24,
+        height: 6,
+      }
     );
+    processingJobInsightsQueryWidget.position(0, 6)
+    sagemakerMonitoringDashboard.addWidgets(processingJobCountWidget);
+    sagemakerMonitoringDashboard.addWidgets(processingJobFailedWidget);
+    sagemakerMonitoringDashboard.addWidgets(processingJobInsightsQueryWidget);
 
     // Training Job
-    sagemakerMonitoringDashboard.addWidgets(
-      new cloudwatch.GraphWidget({
-        title: "Total Training Job Count",
-        stacked: false,
-        width: 12,
-        left:[
-          new cloudwatch.MathExpression({
-            expression: `SELECT SUM(TrainingJobCount_Total) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
-            searchRegion: this.region,
-            label: "Account"
-          })
-        ]
-      })
-    );
+    const trainingJobCountWidget = new cloudwatch.GraphWidget({
+      title: "Total Training Job Count",
+      stacked: false,
+      width: 12,
+      left:[
+        new cloudwatch.MathExpression({
+          expression: `SELECT SUM(TrainingJobCount_Total) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
+          searchRegion: this.region,
+          label: "Account"
+        })
+      ]
+    });
+    trainingJobCountWidget.position(0,12);
 
-    sagemakerMonitoringDashboard.addWidgets(
-      new cloudwatch.GraphWidget({
-        title: "Failed Training Job Count",
-        stacked: false,
-        width: 12,
-        height:6,
-        right:[
-          new cloudwatch.MathExpression({
-            expression: `SELECT SUM(TrainingJobCount_Failed) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
-            searchRegion: this.region,
-            label: "Account"
-          })
-        ]
-      })
+    const trainingJobFailedWidget = new cloudwatch.GraphWidget({
+      title: "Failed Training Job Count",
+      stacked: false,
+      width: 12,
+      height:6,
+      right:[
+        new cloudwatch.MathExpression({
+          expression: `SELECT SUM(TrainingJobCount_Failed) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
+          searchRegion: this.region,
+          label: "Account"
+        })
+      ]
+    });
+    trainingJobFailedWidget.position(12, 12)
+
+    const trainingJobInsightsQueryWIdget = new cloudwatch.LogQueryWidget(
+      {
+        title: 'SageMaker Training Job History',
+        logGroupNames: [ingesterLambda.logGroup.logGroupName],
+        view: cloudwatch.LogQueryVisualizationType.TABLE,
+        queryLines: [
+          'sort @timestamp desc',
+          'filter DashboardQuery == "True"',
+          'filter JobType == "TRAINING_JOB"',
+          'fields Account, JobName, Status, Duration, InstanceCount, InstanceType, Host, fromMillis(StartTime) as StartTime, FailureReason',
+          'fields Metrics.CPUUtilization as CPUUtil, Metrics.DiskUtilization as DiskUtil, Metrics.MemoryUtilization as MemoryUtil',
+          'fields Metrics.GPUMemoryUtilization as GPUMemoeyUtil, Metrics.GPUUtilization as GPUUtil',
+        ],
+        width:24,
+      }
     );
-    
-    sagemakerMonitoringDashboard.addWidgets(
-      new cloudwatch.LogQueryWidget(
-        {
-          title: 'SageMaker Training Job History',
-          logGroupNames: [ingesterLambda.logGroup.logGroupName],
-          view: cloudwatch.LogQueryVisualizationType.TABLE,
-          queryLines: [
-            'sort @timestamp desc',
-            'filter DashboardQuery == "True"',
-            'filter JobType == "TRAINING_JOB"',
-            'fields Account, JobName, Status, Duration, InstanceCount, InstanceType, Host, fromMillis(StartTime) as StartTime, FailureReason',
-            'fields Metrics.CPUUtilization as CPUUtil, Metrics.DiskUtilization as DiskUtil, Metrics.MemoryUtilization as MemoryUtil',
-            'fields Metrics.GPUMemoryUtilization as GPUMemoeyUtil, Metrics.GPUUtilization as GPUUtil',
-          ],
-          width:24,
-        }
-      )
-    );
+    trainingJobInsightsQueryWIdget.position(0, 18)
+
+    sagemakerMonitoringDashboard.addWidgets(trainingJobCountWidget);
+    sagemakerMonitoringDashboard.addWidgets(trainingJobFailedWidget);
+    sagemakerMonitoringDashboard.addWidgets(trainingJobInsightsQueryWIdget);
 
     new CfnOutput(this, 'MonitoringAccountRoleName', {
       exportName: 'monitoring-account-role-name',
