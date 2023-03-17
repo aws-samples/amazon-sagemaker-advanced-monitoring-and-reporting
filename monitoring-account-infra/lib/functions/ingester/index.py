@@ -47,6 +47,7 @@ def lambda_handler(event, context, metrics):
                     job_detail["FailureReason"] = detail.get("FailureReason")
 
                 if job_status and job_status != "InProgress":
+                    job_detail["Duration"] = detail.get("ProcessingEndTime") - detail.get("ProcessingStartTime")
                     metrics.put_metric("ProcessingJobCount_Total", 1, "Count")
                     metrics.put_metric("ProcessingJobCount_"+job_status, 1, "Count")
                     metrics.put_metric("ProcessingJob_Duration", detail.get("ProcessingEndTime") - detail.get("ProcessingStartTime"), "Milliseconds")
@@ -80,6 +81,7 @@ def lambda_handler(event, context, metrics):
                     job_detail["FailureReason"] = detail.get("FailureReason")
                 
                 if job_status and job_status != "InProgress":
+                    job_detail["Duration"] = detail.get("TrainingEndTime") - detail.get("TrainingStartTime")
                     metrics.put_metric("TrainingJobCount_Total", 1, "Count")
                     metrics.put_metric("TrainingJobCount_"+job_status, 1, "Count")
                     metrics.put_metric("TrainingJob_Duration", detail.get("TrainingEndTime") - detail.get("TrainingStartTime"), "Milliseconds")
