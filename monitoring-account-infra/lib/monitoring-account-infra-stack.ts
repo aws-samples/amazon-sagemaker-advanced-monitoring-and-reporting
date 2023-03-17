@@ -142,6 +142,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
 
     const ingesterLambda = new PythonFunction(
       this, 'ingesterLambda', {
+        functionName: 'SageMaker-Event-Ingester',
         entry: path.join(__dirname, 'functions', 'ingester'),
         runtime: lambda.Runtime.PYTHON_3_9,
         index: 'index.py',

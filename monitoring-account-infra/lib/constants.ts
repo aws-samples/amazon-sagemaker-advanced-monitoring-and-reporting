@@ -1,7 +1,7 @@
 export const Parameters = {
   MONITORING_EVENTBUS_SUFFIX: '-sagemaker-monitoring-eventbus',
   EMF: {
-    NAMESPACE: "SageMakerMonitoring",
+    NAMESPACE: "/sample/SageMakerMonitoring",
     LOG_GROUP_NAME: "SageMakerCentralStatistics",
     SERVICE_TYPE: "SageMaker",
     SERVICE_NAME: "CentralMonitoring",
