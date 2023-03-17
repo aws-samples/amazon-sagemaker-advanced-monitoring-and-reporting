@@ -182,9 +182,9 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       height: 6,
       left:[
         new cloudwatch.MathExpression({
-          expression: `SELECT SUM(ProcessingJobCount_Total) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
+          expression: `SEARCH('{${AWS_EMF_NAMESPACE},account,jobType} jobType="PROCESSING_JOB" MetricName="ProcessingJobCount_Total"', 'Sum', 300)`,
           searchRegion: this.region,
-          label: "Account"
+          label: "${PROP('Dim.account')}",
         })
       ]
     });
@@ -196,9 +196,9 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       height:6,
       right:[
         new cloudwatch.MathExpression({
-          expression: `SELECT SUM(ProcessingJobCount_Failed) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
+          expression: `SEARCH('{${AWS_EMF_NAMESPACE},account,jobType} jobType="PROCESSING_JOB" MetricName="ProcessingJobCount_Failed"', 'Sum', 300)`,
           searchRegion: this.region,
-          label: "Account"
+          label: "${PROP('Dim.account')}",
         })
       ]
     })
@@ -233,9 +233,9 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       width: 12,
       left:[
         new cloudwatch.MathExpression({
-          expression: `SELECT SUM(TrainingJobCount_Total) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
+          expression: `SEARCH('{${AWS_EMF_NAMESPACE},account,jobType} jobType="TRAINING_JOB" MetricName="TrainingJobCount_Total"', 'Sum', 300)`,
           searchRegion: this.region,
-          label: "Account"
+          label: "${PROP('Dim.account')}",
         })
       ]
     });
@@ -248,9 +248,9 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       height:6,
       right:[
         new cloudwatch.MathExpression({
-          expression: `SELECT SUM(TrainingJobCount_Failed) FROM ${AWS_EMF_NAMESPACE} GROUP BY account ORDER BY COUNT() ASC`,
+          expression: `SEARCH('{${AWS_EMF_NAMESPACE},account,jobType} jobType="TRAINING_JOB" MetricName="TrainingJobCount_Failed"', 'Sum', 300)`,
           searchRegion: this.region,
-          label: "Account"
+          label: "${PROP('Dim.account')}",
         })
       ]
     });
