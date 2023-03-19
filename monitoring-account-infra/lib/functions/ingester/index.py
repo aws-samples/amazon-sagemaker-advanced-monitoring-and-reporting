@@ -93,11 +93,14 @@ def lambda_handler(event, context, metrics):
                         start_time=datetime.utcfromtimestamp(float(detail.get("CreationTime"))/1000),
                         end_time=datetime.utcfromtimestamp(float(detail.get("TrainingEndTime"))/1000)
                     )
-                    for host, metrics in job_metrics.items():
-                        job_host_detail = job_detail.copy()
-                        job_host_detail["Host"] = host
-                        job_host_detail["Metrics"] = metrics
-                        print(job_host_detail)
+                    if job_metrics:
+                        for host, metrics in job_metrics.items():
+                            job_host_detail = job_detail.copy()
+                            job_host_detail["Host"] = host
+                            job_host_detail["Metrics"] = metrics
+                            print(job_host_detail)
+                    else:
+                        print(job_detail)
                         
             else:
                 print("Unhandled event type")

@@ -22,17 +22,21 @@ def search_metrics(search_expression, account=None, start_time=datetime.now()-ti
         EndTime=end_time
     )
     result = {}
-    for metric in response['MetricDataResults']:
-        label = parse_label(metric['Label'])
-        host = label.get("host")
-        if host:
-            if host not in result:
-                result[host] = {}
-            result[host][label.get("metric")] = float(metric['Values'][0])
-        else:
-            if "host" not in result:
-                result["host"] = {}
-            result["host"][label.get("metric")] = float(metric['Values'][0])
+    try:
+        for metric in response['MetricDataResults']:
+            label = parse_label(metric['Label'])
+            host = label.get("host")
+            if host:
+                if host not in result:
+                    result[host] = {}
+                result[host][label.get("metric")] = float(metric['Values'][0])
+            else:
+                if "host" not in result:
+                    result["host"] = {}
+                result["host"][label.get("metric")] = float(metric['Values'][0])
+    except IndexError:
+        print(f"WARNING: metrics for search expression {search_expression} not found")
+        return None
     return result
 
 def parse_label(label):
