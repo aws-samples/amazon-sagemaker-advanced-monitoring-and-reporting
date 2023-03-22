@@ -16,16 +16,18 @@ In the centralized monitoring account, the events are captured by an EventBrige 
   * Perform custom logic to augment the SageMaker service events. One example is to perform metric query on SageMaker job hosts's utilization metrics when a job completion event is received. This example is supported by the native [CloudWatch Cross-Account Observability](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html) feature to achieve cross-account metrics, logs and traces access.
   * Convert event information to metric, certain log format as ingested as [EMF](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format.html)
 
-## Steps:
+## Procedure:
 
-* Enable monitoring account configuration in the home region. This is a one-off action. Follow the [Step 1 instruction](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount) to complete. 
-Once this step is completed, you should have the following information:
-  * monitoring account sink and share metrics, log groups, and traces
-   ARN: CloudWatch service console > Settings > Manage source accounts > Configuration details > Enter the monitoring account sink ARN
-  
+# Step 1:
+* On Monitoring accout, enable monitoring account configuration in the home region. This is a one-off action. Follow the document [](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount) to complete. Only process step 1 per above doc.
+Once this step is completed, retrieve "monitoring account sink ARN", following below steps:
+Click CloudWatch service console > Settings > Manage source accounts > Configuration details > note down the value of "Monitoring accounts sink ARN"
+
+# Step 2:  
 * Clone this [repo] to local workspace. Copy `.env.sample` file to `.env`, and update monitoring account ID and region to the corresponding values. This solution does support AWS accounts managed by AWS Organizations or standalone accounts. 
 If you are using AWS Organizations, you can set the management account ID in `.env` file. The management account ID will be used later when deploying the workload account infrastructure. If all accounts managed by AWS organization, the required resources in the source workload accounts are deployed via CloudFormation StackSet from the AWS organization's management account. Therefore, no manual deploy of a source workload account stack is required. When a new account is created or an existing account moved into a target OU, the source workload infra stack will be automatically deployed to support this solution.
-  
+
+# Step 3:  
 * Deploy the CDK monitoring-account-infra-stack. 
   * Duplicate `cdk.context.json.sample` in `monitoring-account-infra` folder and rename to `cdk.context.json`
   * (If AWS Organizations is in use) Obtain the AWS Organizations path where the SageMaker workload accounts are located. Example: "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*". Update the `org-path-to-allow` attribute in the `cdk.context.json` to the value obtained from previous step
@@ -38,6 +40,7 @@ If you are using AWS Organizations, you can set the management account ID in `.e
     * MonitoringAccountEventbusARN 
     * MonitoringAccountRoleName
 
+# Step 4:
 * Deploy workload account observability infrastructure. Here, we provide two ways to deploy the workload account infrastructure. For users with limited number of accounts, you can directly deployment the workload infrastructure stack into the individual account. Alternatively, deploy a CloudFormation StackSet into a management account which then automatically deploys the stack into targeted account. With the second method, it can also be used together with AWS Organization to target the workload infra stack deployment to organization units (OUs). The deployment steps for both scenario are described below.
   * Deploy into a single workload account
     * Change directory into the `workload-account-infra` folder
