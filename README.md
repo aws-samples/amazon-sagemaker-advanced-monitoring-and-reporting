@@ -16,121 +16,142 @@ In the centralized monitoring account, the events are captured by an EventBrige 
   * Perform custom logic to augment the SageMaker service events. One example is to perform metric query on SageMaker job hosts's utilization metrics when a job completion event is received. This example is supported by the native [CloudWatch Cross-Account Observability](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account.html) feature to achieve cross-account metrics, logs and traces access.
   * Convert event information to metric, certain log format as ingested as [EMF](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Embedded_Metric_Format.html)
 
-### Procedure:
-This solution can be used for either AWS accounts managed by AWS Organizations or standalone accounts. 
+---
+## Procedure:
+This solution can be used for either AWS accounts managed by AWS Organizations or standalone accounts. The following sections will explain the steps for the 2 scenarios respectively. Please note that within each scenario, steps will be performed in different AWS accounts. For your convenience, the account type to perform the step is highlighted at the beginning each step. 
 
-#### Steps for AWS Organizations environment
-If you are using AWS Organizations, you can set the management account ID in `.env` file. The management account ID will be used later when deploying the workload account infrastructure. If all accounts managed by AWS organization, the required resources in the source workload accounts are deployed via CloudFormation StackSet from the AWS organization's management account. Therefore, no manual deploy of a source workload account stack is required. When a new account is created or an existing account moved into a target OU, the source workload infra stack will be automatically deployed to support this solution.
+<details>
+    <summary><b><i>Steps for AWS Organizations environment</i></b></summary>
 
-# Step 1:
-* On Monitoring accout, enable monitoring account configuration in the home region. This is a one-off action. Follow the document [](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount) to complete. Only process step 1 per above doc.
-Once this step is completed, retrieve "monitoring account sink ARN", following below steps:
-Click CloudWatch service console > Settings > Manage source accounts > Configuration details > note down the value of "Monitoring accounts sink ARN"
+If the monitoring account and all SageMaker workload accounts are all in the same AWS Organization, the required infrastructure in the source workload accounts are automatically via CloudFormation StackSet from the AWS Organization's management account. Therefore, no manual infra deploy into source workload accounts is required. When a new account is created or an existing account moved into a target OU, the source workload infra stack will be automatically deployed and included in the scope of centralized monitoring.
 
-# Step 2:  
-* Clone this repo to local workspace. Copy `.env.sample` file to `.env`, and update monitoring account ID and region to the actual environment values. 
+### Step 0
+**[Not in any account]** Collect the following information from your environment. They will be used in the later steps
+  * The management account of your AWS Organizations
+  * The AWS account to be used as monitoring account
+  * The AWS Organization Unit that will have the SageMaker workload accounts
+  * The home region of your workload. To use this solution in multiple regions, you will need to repeat the step for each region.
+### Step 1
+**[Monitoring account]** Enable monitoring account configuration in the home region. Only perform Section "Step 1: Set up a monitoring account" of this [documentation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount). Please note for the 6th step in this documentation, enter the AWS Organization path for the workload accounts.
 
-# Step 3:  
-* Deploy the CDK monitoring-account-infra-stack. 
-  * Duplicate `cdk.context.json.sample` in `monitoring-account-infra` folder and rename to `cdk.context.json`
-  * (If AWS Organizations is in use) Obtain the AWS Organizations path where the SageMaker workload accounts are located. Example: "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*". Update the `org-path-to-allow` attribute in the `cdk.context.json` to the value obtained from previous step
-  * (If AWS Organizations is not used) Update the `accounts-to-allow` attribute to include a list of workload accounts ID that you would like to enable monitoring for.
-  * Run make target
-    ```
-    make deploy-monitoring-account-infra
-    ```
-    Once this step is completed, you should have the following information from output:
-    * MonitoringAccountEventbusARN 
-    * MonitoringAccountRoleName
+Then retrieve the "monitoring account sink ARN" for later use. You can obtain the ARN by clicking through ```CloudWatch service console``` > ```Settings``` > ```Manage source accounts``` > ```Configuration details``` > note down the value of ```Monitoring accounts sink ARN```
 
-# Step 4:
-* Deploy workload account observability infrastructure. Here, we provide two ways to deploy the workload account infrastructure. For users with limited number of accounts, you can directly deployment the workload infrastructure stack into the individual account. Alternatively, deploy a CloudFormation StackSet into a management account which then automatically deploys the stack into targeted account. With the second method, it can also be used together with AWS Organization to target the workload infra stack deployment to organization units (OUs). The deployment steps for both scenario are described below.
-  * Deploy into a single workload account
-    * Change directory into the `workload-account-infra` folder
-    * Create cdk.context.json in `workload-account-infra` folder with below structure. Set each attribute's value to be the ones from previous steps
-    ```
-    {
-      "monitoring-account-id": "",
-      "monitoring-account-sink-arn": "",
-      "monitoring-account-role-name": "",
-      "monitoring-account-eventbus-arn": ""
-    }
-    ```
-    * Deploy CDK application stack `WorkloadAccountInfraStack`. Replace the `<workload_account_awscli_profile>` with the actual awscli profile name for the account you are deploying to.
-      ```
-      cdk deploy WorkloadAccountInfraStack --profile <workload_account_awscli_profile>
-      ```
-  * Deploy with CloudFormation StackSet and AWS Organization
-    * Duplicate cdk.context.json.sample in `WorkloadAccountInfraStack` folder and rename to cdk.context.json. Update the content of cdk.context.json using the values obtained above
-    ```
-    {
-      "monitoring-account-id": "",
-      "monitoring-account-sink-arn": "",
-      "monitoring-account-role-name": "",
-      "monitoring-account-eventbus-arn": "",
-      "workload-account-OUs": [""],
-      "workload-account-regions": [""]
-    }
-    ```
-  * Run make target
-    ```
-    make deploy-management-stackset
-    ```
+### Step 2
+Execute the following commands in your local machine. Before executing the command, replace ```<111111111111>```, ```<222222222222>```, ```<aws_region>``` to the right value based on information collected in Step 0
+```bash
+git clone https://github.com/aws-samples/amazon-sagemaker-advanced-monitoring-and-reporting.git
+cd amazon-sagemaker-advanced-monitoring-and-reporting
+cat << EOF >./.env
+MANAGEMENT_ACCOUNT=<111111111111>
+MONITORING_ACCOUNT=<222222222222>
+CDK_DEPLOY_REGION=<aws_region>
+EOF
+```
+These commands clone this repo to your local workspace, change directory into the local folder and then create the .env file which will be used later for CDK deployment.
 
-#### Steps for non AWS Organizations environment
-# Step 1:
-* On Monitoring accout, enable monitoring account configuration in the home region. This is a one-off action. Follow the document [](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount) to complete. Only process step 1 per above doc.
-Once this step is completed, retrieve "monitoring account sink ARN", following below steps:
-Click CloudWatch service console > Settings > Manage source accounts > Configuration details > note down the value of "Monitoring accounts sink ARN"
+### Step 3
+**[Monitoring Account]** Execute the following command to deploy the  CDK application "monitoring-account-infra-stack". Before executing the command, replace the ```<organization_unit_path>``` to the actual AWS Organizations OU path. An example looks like  ```o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*```
 
-# Step 2:  
-* Clone this repo to local workspace. Copy `.env.sample` file to `.env`, and update monitoring account ID and region to the actual environment values. 
+```bash
+cat << EOF >./monitoring-account-infra/cdk.context.json
+{
+  "org-path-to-allow": "<organization_unit_path>"
+}
+EOF
+make deploy-monitoring-account-infra
+```
+Once the command execution completes, you should see the following information from output in the terminal:
+* MonitoringAccountEventbusARN 
+* MonitoringAccountRoleName
 
-# Step 3:  
-* Deploy the CDK monitoring-account-infra-stack. 
-  * Duplicate `cdk.context.json.sample` in `monitoring-account-infra` folder and rename to `cdk.context.json`
-  * (If AWS Organizations is in use) Obtain the AWS Organizations path where the SageMaker workload accounts are located. Example: "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*". Update the `org-path-to-allow` attribute in the `cdk.context.json` to the value obtained from previous step
-  * (If AWS Organizations is not used) Update the `accounts-to-allow` attribute to include a list of workload accounts ID that you would like to enable monitoring for.
-  * Run make target
-    ```
-    make deploy-monitoring-account-infra
-    ```
-    Once this step is completed, you should have the following information from output:
-    * MonitoringAccountEventbusARN 
-    * MonitoringAccountRoleName
+### Step 4
+**[Management Account]** Deploy a CloudFormation StackSet into your AWS Organizations' management account. This stackset will then automatically deploy the infrastructure stack into SageMaker workload accounts in the targeted OU. With the second method, it can also be used together with AWS Organization to target the workload infra stack deployment to organization units (OUs). The deployment steps for both scenario are described below.
 
-# Step 4:
-* Deploy workload account observability infrastructure. Here, we provide two ways to deploy the workload account infrastructure. For users with limited number of accounts, you can directly deployment the workload infrastructure stack into the individual account. Alternatively, deploy a CloudFormation StackSet into a management account which then automatically deploys the stack into targeted account. With the second method, it can also be used together with AWS Organization to target the workload infra stack deployment to organization units (OUs). The deployment steps for both scenario are described below.
-  * Deploy into a single workload account
-    * Change directory into the `workload-account-infra` folder
-    * Create cdk.context.json in `workload-account-infra` folder with below structure. Set each attribute's value to be the ones from previous steps
-    ```
-    {
-      "monitoring-account-id": "",
-      "monitoring-account-sink-arn": "",
-      "monitoring-account-role-name": "",
-      "monitoring-account-eventbus-arn": ""
-    }
-    ```
-    * Deploy CDK application stack `WorkloadAccountInfraStack`. Replace the `<workload_account_awscli_profile>` with the actual awscli profile name for the account you are deploying to.
-      ```
-      cdk deploy WorkloadAccountInfraStack --profile <workload_account_awscli_profile>
-      ```
-  * Deploy with CloudFormation StackSet and AWS Organization
-    * Duplicate cdk.context.json.sample in `WorkloadAccountInfraStack` folder and rename to cdk.context.json. Update the content of cdk.context.json using the values obtained above
-    ```
-    {
-      "monitoring-account-id": "",
-      "monitoring-account-sink-arn": "",
-      "monitoring-account-role-name": "",
-      "monitoring-account-eventbus-arn": "",
-      "workload-account-OUs": [""],
-      "workload-account-regions": [""]
-    }
-    ```
-  * Run make target
-    ```
-    make deploy-management-stackset
+```bash
+cat << EOF >./workload-account-infra/cdk.context.json
+{
+  "monitoring-account-id": "<123456789012>",
+  "monitoring-account-sink-arn": "<arn:aws:oam:ap-southeast-2:123456789012:sink/11111111-2222-3333-aabb-1a2b3c4d5e>",
+  "monitoring-account-role-name": "<sagemaker-monitoring-account-role>",
+  "monitoring-account-eventbus-arn": "<arn:aws:events:ap-southeast-2:123456789012:event-bus/sagemaker-monitoring-eventbus>",
+  "workload-account-OUs": ["<ou-aaaa-1a2b3c4d>"],
+  "workload-account-regions": ["<ap-southeast-2>"]
+}
+EOF
+make deploy-management-stackset
+```
+</details>
+
+<details>
+    <summary><b><i>Steps for non AWS Organizations environment</i></b></summary>
+
+If your environment doesn't use AWS Organizations, the monitoring account infra stack is deployed in a similar manner with just a slightly change. However, the workload infrastructure stack needs to be deployed manually into each workload accounts. Therefore, it is suitable for environment with limited number of account. For large environment, it is recommended to consider AWS Organizations.
+
+### Step 0
+**[Not in any account]** Collect the following information from your environment. They will be used in the later steps
+  * The AWS account to be used as monitoring account
+  * A list of AWS accounts which will be used as SageMaker workload accounts and will be included into centralized monitoring
+  * The home region of your workload.
+
+### Step 1
+**[Monitoring account]** Enable monitoring account configuration in the home region. Only perform Section "Step 1: Set up a monitoring account" of this [documentation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount). Please note for the 6th step in this documentation, enter the list of individual workload account IDs.
+
+Then retrieve the "monitoring account sink ARN" for later use. You can obtain the ARN by clicking through ```CloudWatch service console``` > ```Settings``` > ```Manage source accounts``` > ```Configuration details``` > note down the value of ```Monitoring accounts sink ARN```
+
+### Step 2
+Execute the following commands in your local machine. Before executing the command, replace ```<111111111111>``` and ```<aws_region>``` to the right value based on information collected in Step 0
+```bash
+git clone https://github.com/aws-samples/amazon-sagemaker-advanced-monitoring-and-reporting.git
+cd amazon-sagemaker-advanced-monitoring-and-reporting
+cat << EOF >./.env
+MONITORING_ACCOUNT=<111111111111>
+CDK_DEPLOY_REGION=<aws_region>
+EOF
+```
+These commands clone this repo to your local workspace, change directory into the local folder and then create the .env file which will be used later for CDK deployment.
+
+### Step 3
+**[Monitoring Account]** Execute the following command to deploy the  CDK application "monitoring-account-infra-stack". Before executing the command, modify the ```accounts-to-allow``` list to the actual list of SageMaker workload account IDs 
+
+```bash
+cat << EOF >./monitoring-account-infra/cdk.context.json
+{
+  "accounts-to-allow": [
+    "<222222222222>",
+    "<333333333333>",
+    ...
+  ]
+}
+EOF
+make deploy-monitoring-account-infra
+```
+Once the command execution completes, you should see the following information from output in the terminal:
+* MonitoringAccountEventbusARN 
+* MonitoringAccountRoleName
+
+### Step 4
+**[Workload Account]** Deploy the workload infrastructure stack into each SageMaker workload account. 
+Execute the below command only once to set up the CDK deployment context
+```bash
+cat << EOF >./workload-account-infra/cdk.context.json
+{
+  "monitoring-account-id": "<123456789012>",
+  "monitoring-account-sink-arn": "<arn:aws:oam:ap-southeast-2:123456789012:sink/11111111-2222-3333-aabb-1a2b3c4d5e>",
+  "monitoring-account-role-name": "<sagemaker-monitoring-account-role>",
+  "monitoring-account-eventbus-arn": "<arn:aws:events:ap-southeast-2:123456789012:event-bus/sagemaker-monitoring-eventbus>"
+}
+EOF
+make deploy-workload-account-infra
+```
+
+Then repeat the following command for each workload account. Modify the ```<111111111111>``` to the actual workload account ID you are deploying into. 
+```bash
+export WORKLOAD_ACCOUNT=<111111111111>
+make deploy-workload-account-infra
+unset WORKLOAD_ACCOUNT
+```
+
+</details>
 
 ## Security
 

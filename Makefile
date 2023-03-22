@@ -17,3 +17,11 @@ deploy-monitoring-account-infra:
 .PHONY: synth-monitoring-account-infra
 synth-monitoring-account-infra:
 	cd monitoring-account-infra && CDK_DEPLOY_ACCOUNT=${MONITORING_ACCOUNT} cdk synth
+
+.PHONY: deploy-workload-account-infra
+deploy-workload-account-infra:
+	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk deploy WorkloadAccountInfraStack
+
+.PHONY: synth-workload-account-infra
+synth-workload-account-infra:
+	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk synth WorkloadAccountInfraStack
