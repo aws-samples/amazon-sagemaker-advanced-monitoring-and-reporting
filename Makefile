@@ -25,3 +25,7 @@ deploy-workload-account-infra:
 .PHONY: synth-workload-account-infra
 synth-workload-account-infra:
 	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk synth WorkloadAccountInfraStack
+
+build:
+	cd workload-account-infra && npm ci
+	cd monitoring-account-infra && npm ci
