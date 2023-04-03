@@ -58,6 +58,7 @@ cat << EOF >./monitoring-account-infra/cdk.context.json
   "org-path-to-allow": "<organization_unit_path>"
 }
 EOF
+make build
 make deploy-monitoring-account-infra
 ```
 Once the command execution completes, you should see the following information from output in the terminal:
@@ -78,6 +79,7 @@ cat << EOF >./workload-account-infra/cdk.context.json
   "workload-account-regions": ["<ap-southeast-2>"]
 }
 EOF
+make build
 make deploy-management-stackset
 ```
 </details>
