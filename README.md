@@ -3,9 +3,10 @@
 A solution to enable centralized monitoring of SageMaker jobs and activities across multiple AWS accounts. This aims to assist operation team to have a highlevel view of all SageMaker workloads spread in multiple workload accounts from a single pane of glass. It also has an option to enable the [Amazon CloudWatch Cross-Account Observability](https://aws.amazon.com/blogs/aws/new-amazon-cloudwatch-cross-account-observability/) across the SageMaker workload accounts to provide access to monitoring telemetries such as metrics, logs and traces from the centralized monitoring account.
 
 ## Tools required
-- CDK
-- AWSCLI
-- Docker
+- [Node.js](https://nodejs.org/en/download/) 14.15.0 or later
+- [AWS CLI Version 2](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- [CDK Toolkit](https://docs.aws.amazon.com/cdk/v2/guide/cli.html)
+- [Docker Engine](https://docs.docker.com/engine/install/) (in running state when performing the deployment procedures)
 
 ## Solution Architecture
 ![Solution Architecture](Architecture.png?raw=true "Solution Architecture")
@@ -88,6 +89,14 @@ make build
 make deploy-management-stackset
 ```
 </details>
+
+### Clean up
+**[Management Account and Monitoring Account]** To tear down the stacks, use the follow commands. Make sure you are using the right AWS account's credential for each of the make command. 
+```bash
+make destroy-management-stackset # Execute against the management account
+make destroy-monitoring-account-infra # Execute against the monitoring account
+```
+Alternatively, you can login into the monitoring account and management account and delete the stacks from the CloudFormation console
 
 <details>
     <summary><b><i>Steps for non AWS Organizations environment</i></b></summary>
