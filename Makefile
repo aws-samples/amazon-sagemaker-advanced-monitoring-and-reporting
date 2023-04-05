@@ -18,6 +18,10 @@ deploy-monitoring-account-infra:
 synth-monitoring-account-infra:
 	cd monitoring-account-infra && CDK_DEPLOY_ACCOUNT=${MONITORING_ACCOUNT} cdk synth
 
+.PHONY: destroy-monitoring-account-infra
+destroy-monitoring-account-infra:
+	cd monitoring-account-infra && CDK_DEPLOY_ACCOUNT=${MONITORING_ACCOUNT} cdk destroy
+
 .PHONY: deploy-workload-account-infra
 deploy-workload-account-infra:
 	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk deploy WorkloadAccountInfraStack

@@ -2,6 +2,11 @@
 
 A solution to enable centralized monitoring of SageMaker jobs and activities across multiple AWS accounts. This aims to assist operation team to have a highlevel view of all SageMaker workloads spread in multiple workload accounts from a single pane of glass. It also has an option to enable the [Amazon CloudWatch Cross-Account Observability](https://aws.amazon.com/blogs/aws/new-amazon-cloudwatch-cross-account-observability/) across the SageMaker workload accounts to provide access to monitoring telemetries such as metrics, logs and traces from the centralized monitoring account.
 
+## Tools required
+- CDK
+- AWSCLI
+- Docker
+
 ## Solution Architecture
 ![Solution Architecture](Architecture.png?raw=true "Solution Architecture")
 ### Centralized Events Collection
