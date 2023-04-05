@@ -10,6 +10,11 @@ deploy-management-stackset:
 synth-management-stackset:
 	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${MANAGEMENT_ACCOUNT} cdk synth ManagementStackStack
 
+.PHONY: destroy-management-stackset
+destroy-management-stackset:
+	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${MANAGEMENT_ACCOUNT} cdk destroy ManagementStackStack
+
+
 .PHONY: deploy-monitoring-account-infra
 deploy-monitoring-account-infra:
 	cd monitoring-account-infra && CDK_DEPLOY_ACCOUNT=${MONITORING_ACCOUNT} cdk deploy
@@ -29,6 +34,10 @@ deploy-workload-account-infra:
 .PHONY: synth-workload-account-infra
 synth-workload-account-infra:
 	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk synth WorkloadAccountInfraStack
+
+.PHONY: destroy-workload-account-infra
+destroy-workload-account-infra:
+	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk destroy WorkloadAccountInfraStack
 
 build:
 	cd workload-account-infra && npm ci
