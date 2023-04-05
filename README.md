@@ -88,7 +88,6 @@ EOF
 make build
 make deploy-management-stackset
 ```
-</details>
 
 ### Clean up
 **[Management Account and Monitoring Account]** To tear down the stacks, use the follow commands. Make sure you are using the right AWS account's credential for each of the make command. 
@@ -97,6 +96,8 @@ make destroy-management-stackset # Execute against the management account
 make destroy-monitoring-account-infra # Execute against the monitoring account
 ```
 Alternatively, you can login into the monitoring account and management account and delete the stacks from the CloudFormation console
+
+</details>
 
 <details>
     <summary><b><i>Steps for non AWS Organizations environment</i></b></summary>
@@ -166,6 +167,14 @@ export WORKLOAD_ACCOUNT=<111111111111>
 make deploy-workload-account-infra
 unset WORKLOAD_ACCOUNT
 ```
+
+### Clean up
+**[Workload Accounts and Monitoring Account]** To tear down the stacks, use the follow commands. Make sure you are using the right AWS account's credential for each of the make command. 
+```bash
+make destroy-workload-account-infra # Execute against each workload account
+make destroy-monitoring-account-infra # Execute against the monitoring account
+```
+Alternatively, you can login into the monitoring account and workload account and delete the stacks from the CloudFormation console
 
 </details>
 
