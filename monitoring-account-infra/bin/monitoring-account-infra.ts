@@ -10,7 +10,8 @@ new MonitoringAccountInfraStack(app, 'MonitoringAccountInfraStack', {
     region: process.env.CDK_DEPLOY_REGION,
   },
   devMode: true,
-  prefix: `test`,
   orgPathToAllow: app.node.tryGetContext('org-path-to-allow'),
   accountsToAllow: app.node.tryGetContext('accounts-to-allow') || [],
+  monitoringAccountRoleName: app.node.tryGetContext('monitoring-account-role-name'),
+  monitoringAccountEventbusName: app.node.tryGetContext('monitoring-account-eventbus-name'),
 });

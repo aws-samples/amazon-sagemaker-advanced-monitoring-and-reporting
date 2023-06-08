@@ -23,9 +23,10 @@ type MonitoringAccountInfraStackConfig = {
    * prefix - global solution prefix used for stack names, logical resource names
    * and physical names (where cross-account access scenarios apply)
    **/
-  prefix: string;
   orgPathToAllow?: string;
   accountsToAllow: string[];
+  monitoringAccountRoleName?: string;
+  monitoringAccountEventbusName?: string;
 } & cdk.StackProps;
 
 export class MonitoringAccountInfraStack extends cdk.Stack {
@@ -34,9 +35,10 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
 
     const {
       devMode,
-      prefix,
       orgPathToAllow,
       accountsToAllow,
+      monitoringAccountRoleName,
+      monitoringAccountEventbusName,
     } = props;
 
     const AWS_EMF_NAMESPACE = Parameters.EMF.NAMESPACE;
@@ -46,7 +48,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
 
     const crossAccountSagemakerMonitoringRole = new iam.Role(
       this, 'crossAccountSagemakerMonitoringRole', {
-        roleName: Parameters.SAGEMAKER_MONITORING_ACCOUNT_ROLE_NAME,
+        roleName: monitoringAccountRoleName? monitoringAccountRoleName : Parameters.SAGEMAKER_MONITORING_ACCOUNT_ROLE_NAME,
         assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com')
       }
     );
@@ -57,17 +59,17 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       })
     )
 
-    const sagemakerMonitoringEventbus = new events.EventBus(
-      this, 'sagemakerMonitoringEventbus',
+    const sagemakerMonitoringAccountEventbus = new events.EventBus(
+      this, 'sagemakerMonitoringAccountEventbus',
       {
-        eventBusName: `${prefix}${Parameters.MONITORING_EVENTBUS_SUFFIX}`,
+        eventBusName: `${monitoringAccountEventbusName? monitoringAccountEventbusName : Parameters.MONITORING_EVENTBUS_NAME}`,
       }
     );
     
     if (orgPathToAllow) {
-      sagemakerMonitoringEventbus.addToResourcePolicy(
+      sagemakerMonitoringAccountEventbus.addToResourcePolicy(
         new iam.PolicyStatement({
-          sid: 'AllowOU',
+          sid: `AllowOU-${Date.now()}`,
           actions: ['events:PutEvents'],
           principals: [new iam.PrincipalWithConditions(
             new iam.AnyPrincipal(),
@@ -75,17 +77,17 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
               'ForAnyValue:StringLike': {'aws:PrincipalOrgPaths': [orgPathToAllow]}
             }
           )],
-          resources: [sagemakerMonitoringEventbus.eventBusArn],
+          resources: [sagemakerMonitoringAccountEventbus.eventBusArn],
         })
       );
     }
     accountsToAllow.forEach(accountId => {
-      sagemakerMonitoringEventbus.addToResourcePolicy(
+      sagemakerMonitoringAccountEventbus.addToResourcePolicy(
         new iam.PolicyStatement({
           sid: `AllowAccount${accountId}`,
           actions: ['events:PutEvents'],
           principals: [new iam.AccountPrincipal(accountId)],
-          resources: [sagemakerMonitoringEventbus.eventBusArn],
+          resources: [sagemakerMonitoringAccountEventbus.eventBusArn],
         })
       );
     });
@@ -93,7 +95,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     const sagemakerStageChangeEventRule = new events.Rule(
       this, 'sagemakerStageChangeEventRule',
       {
-        eventBus: sagemakerMonitoringEventbus,
+        eventBus: sagemakerMonitoringAccountEventbus,
         description: `Capture SageMaker State and Status Change events`,
         eventPattern: {
           source: ["aws.sagemaker"],
@@ -118,7 +120,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     const sagemakerAPIEventRule = new events.Rule(
       this, 'sagemakerAPIEventRule',
       {
-        eventBus: sagemakerMonitoringEventbus,
+        eventBus: sagemakerMonitoringAccountEventbus,
         description: `SageMaker API events streamed to a log group`,
         eventPattern: {
           source: ["aws.sagemaker"],
@@ -285,7 +287,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     });
     new CfnOutput(this, 'MonitoringAccountEventbusARN', {
       exportName: 'monitoring-account-eventbus-arn',
-      value: sagemakerMonitoringEventbus.eventBusArn,
+      value: sagemakerMonitoringAccountEventbus.eventBusArn,
     })
   }
 }

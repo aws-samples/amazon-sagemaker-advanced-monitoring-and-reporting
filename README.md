@@ -38,7 +38,7 @@ If the monitoring account and all SageMaker workload accounts are all in the sam
   * The AWS Organization Unit that will have the SageMaker workload accounts
   * The home region of your workload. To use this solution in multiple regions, you will need to repeat the step for each region.
 ### Step 1
-**[Monitoring account]** Enable monitoring account configuration in the home region. Only perform Section "Step 1: Set up a monitoring account" of this [documentation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount). Please note for the 6th step in this documentation, enter the AWS Organization path for the workload accounts.
+**[Monitoring account]** Enable monitoring account configuration in the home region. Only perform Section "Step 1: Set up a monitoring account" of this [documentation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-ConfigureMonitoringAccount). Please note for the 6th step in this documentation, enter the AWS Organization path for the workload accounts. The org path is in the form of "o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/*"
 
 Then retrieve the "monitoring account sink ARN" for later use. You can obtain the ARN by clicking through ```CloudWatch service console``` > ```Settings``` > ```Manage source accounts``` > ```Configuration details``` > note down the value of ```Monitoring accounts sink ARN```
 
