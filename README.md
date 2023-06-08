@@ -26,10 +26,14 @@ In the centralized monitoring account, the events are captured by an EventBrige 
 ## Procedure:
 This solution can be used for either AWS accounts managed by AWS Organizations or standalone accounts. The following sections will explain the steps for the 2 scenarios respectively. Please note that within each scenario, steps will be performed in different AWS accounts. For your convenience, the account type to perform the step is highlighted at the beginning each step. 
 
-<details>
-    <summary><b><i>Steps for AWS Organizations environment</i></b></summary>
-
+### Deploy for AWS Organizations environment
 If the monitoring account and all SageMaker workload accounts are all in the same AWS Organization, the required infrastructure in the source workload accounts are automatically via CloudFormation StackSet from the AWS Organization's management account. Therefore, no manual infra deploy into source workload accounts is required. When a new account is created or an existing account moved into a target OU, the source workload infra stack will be automatically deployed and included in the scope of centralized monitoring.
+
+```bash
+./scripts/deploy-organizations.sh
+```
+<details>
+    <summary><b><i>[Optional] Manual Steps</i></b></summary>
 
 ### Step 0
 **[Not in any account]** Collect the following information from your environment. They will be used in the later steps
@@ -99,10 +103,14 @@ Alternatively, you can login into the monitoring account and management account 
 
 </details>
 
-<details>
-    <summary><b><i>Steps for non AWS Organizations environment</i></b></summary>
-
+### Deploy to Individual Accounts
 If your environment doesn't use AWS Organizations, the monitoring account infra stack is deployed in a similar manner with just a slightly change. However, the workload infrastructure stack needs to be deployed manually into each workload accounts. Therefore, it is suitable for environment with limited number of account. For large environment, it is recommended to consider AWS Organizations.
+
+```bash
+./scripts/deploy-individual.sh
+```
+<details>
+    <summary><b><i>[Optional] Manual Steps</i></b></summary>
 
 ### Step 0
 **[Not in any account]** Collect the following information from your environment. They will be used in the later steps
