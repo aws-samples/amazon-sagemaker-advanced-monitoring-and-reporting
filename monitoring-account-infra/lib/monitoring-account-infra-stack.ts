@@ -8,6 +8,7 @@ import {
   aws_lambda as lambda,
   CfnOutput,
   RemovalPolicy,
+  CfnResource,
 } from 'aws-cdk-lib';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { Construct } from 'constructs';
@@ -45,6 +46,56 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     const AWS_EMF_LOG_GROUP_NAME = Parameters.EMF.LOG_GROUP_NAME;
     const AWS_EMF_SERVICE_TYPE = Parameters.EMF.SERVICE_TYPE;
     const AWS_EMF_SERVICE_NAME = Parameters.EMF.SERVICE_NAME;
+
+    // Create Monitoring Sink
+    let sinkPolicyStatement = []
+    if (orgPathToAllow) {
+      sinkPolicyStatement.push({
+        Effect: "Allow",
+        Principal: "*",
+        Resource: "*",
+        Action: [ "oam:CreateLink", "oam:UpdateLink" ],
+        Condition: {
+          'ForAnyValue:StringEquals': {
+            'aws:PrincipalOrgPaths': orgPathToAllow,
+          },
+          'ForAllValues:StringEquals': {
+            'oam:ResourceTypes': [
+              "AWS::CloudWatch::Metric",
+              "AWS::Logs::LogGroup",
+              "AWS::XRay::Trace",
+            ]
+          }
+        }
+      })
+    }
+    if (accountsToAllow.length > 0) {
+      sinkPolicyStatement.push({
+        Effect: "Allow",
+        Principal: { AWS: `!Split [",", "${accountsToAllow.toString()}"]`},
+        Resource: "*",
+        Action: [ "oam:CreateLink", "oam:UpdateLink" ],
+        Condition: {
+          'ForAllValues:StringEquals': {
+            'oam:ResourceTypes': [
+              "AWS::CloudWatch::Metric",
+              "AWS::Logs::LogGroup",
+              "AWS::XRay::Trace",
+            ]
+          }
+        }
+      })
+    }
+    const monitoringSink = new CfnResource(this, 'MonitoringSink', {
+      type: "AWS::Oam::Sink",
+      properties: {
+        Name: "MonitoringSink",
+        Policy: {
+          Version: '2012-10-17',
+          Statement: sinkPolicyStatement,
+        }
+      }
+    })
 
     const crossAccountSagemakerMonitoringRole = new iam.Role(
       this, 'crossAccountSagemakerMonitoringRole', {
@@ -280,6 +331,11 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     sagemakerMonitoringDashboard.addWidgets(trainingJobCountWidget);
     sagemakerMonitoringDashboard.addWidgets(trainingJobFailedWidget);
     sagemakerMonitoringDashboard.addWidgets(trainingJobInsightsQueryWIdget);
+
+    new CfnOutput(this, 'MonitoringAccountSinkIdentifier', {
+      exportName: 'monitoring-account-sink-identifier',
+      value: monitoringSink.getAtt("Arn").toString()
+    });
 
     new CfnOutput(this, 'MonitoringAccountRoleName', {
       exportName: 'monitoring-account-role-name',
