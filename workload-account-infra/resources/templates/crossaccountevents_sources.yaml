@@ -42,7 +42,7 @@ Resources:
               AWS: !Sub 'arn:aws:iam::${MonitoringAccountId}:root'
             Condition:
               StringLike:
-                "aws:PrincipalArn": "arn:aws:iam::${MonitoringAccountId}:role/${MonitoringAccountRoleName}"
+                "aws:PrincipalArn": !Sub "arn:aws:iam::${MonitoringAccountId}:role/${MonitoringAccountRoleName}"
         Version: "2012-10-17"
   crossAccountFromMonitoringAccountRolePolicy:
     Type: AWS::IAM::Policy
