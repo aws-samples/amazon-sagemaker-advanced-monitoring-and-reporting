@@ -19,7 +19,7 @@ new OrganizationStackset(app, 'ManagementStackStack', {
     region: process.env.CDK_DEPLOY_REGION,
   },
   stackSetTargetOUs: app.node.tryGetContext('workload-account-OUs'),
-  stackSetTargetRegions: app.node.tryGetContext('workload-account-regions'),
+  stackSetTargetRegion: app.node.tryGetContext('home-region'),
 });
 
 new WorkloadAccountInfraStack(app, 'WorkloadAccountInfraStack', {

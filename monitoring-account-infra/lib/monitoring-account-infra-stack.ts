@@ -26,8 +26,6 @@ type MonitoringAccountInfraStackConfig = {
    **/
   orgPathToAllow?: string;
   accountsToAllow: string[];
-  monitoringAccountRoleName?: string;
-  monitoringAccountEventbusName?: string;
 } & cdk.StackProps;
 
 export class MonitoringAccountInfraStack extends cdk.Stack {
@@ -38,8 +36,6 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
       devMode,
       orgPathToAllow,
       accountsToAllow,
-      monitoringAccountRoleName,
-      monitoringAccountEventbusName,
     } = props;
 
     const AWS_EMF_NAMESPACE = Parameters.EMF.NAMESPACE;
@@ -99,7 +95,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
 
     const crossAccountSagemakerMonitoringRole = new iam.Role(
       this, 'crossAccountSagemakerMonitoringRole', {
-        roleName: monitoringAccountRoleName? monitoringAccountRoleName : Parameters.SAGEMAKER_MONITORING_ACCOUNT_ROLE_NAME,
+        roleName: Parameters.SAGEMAKER_MONITORING_ACCOUNT_ROLE_NAME,
         assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com')
       }
     );
@@ -113,14 +109,14 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     const sagemakerMonitoringAccountEventbus = new events.EventBus(
       this, 'sagemakerMonitoringAccountEventbus',
       {
-        eventBusName: `${monitoringAccountEventbusName? monitoringAccountEventbusName : Parameters.MONITORING_EVENTBUS_NAME}`,
+        eventBusName: Parameters.MONITORING_EVENTBUS_NAME,
       }
     );
     
     if (orgPathToAllow) {
       sagemakerMonitoringAccountEventbus.addToResourcePolicy(
         new iam.PolicyStatement({
-          sid: `AllowOU-${Date.now()}`,
+          sid: `AllowOU`,
           actions: ['events:PutEvents'],
           principals: [new iam.PrincipalWithConditions(
             new iam.AnyPrincipal(),
@@ -270,6 +266,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
           'fields Account, JobName, Status, Duration, InstanceCount, InstanceType, Host, fromMillis(StartTime) as StartTime, FailureReason',
           'fields Metrics.CPUUtilization as CPUUtil, Metrics.DiskUtilization as DiskUtil, Metrics.MemoryUtilization as MemoryUtil',
           'fields Metrics.GPUMemoryUtilization as GPUMemoeyUtil, Metrics.GPUUtilization as GPUUtil',
+          'stats count(*) as updatesReceived by Account, JobName, Status, Duration, InstanceCount, InstanceType, Host, FailureReason, CPUUtil, DiskUtil, MemoryUtil, GPUMemoeyUtil, GPUUtil',
         ],
         width:24,
         height: 6,
@@ -322,6 +319,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
           'fields Account, JobName, Status, Duration, InstanceCount, InstanceType, Host, fromMillis(StartTime) as StartTime, FailureReason',
           'fields Metrics.CPUUtilization as CPUUtil, Metrics.DiskUtilization as DiskUtil, Metrics.MemoryUtilization as MemoryUtil',
           'fields Metrics.GPUMemoryUtilization as GPUMemoeyUtil, Metrics.GPUUtilization as GPUUtil',
+          'stats count(*) as updatesReceived by Account, JobName, Status, Duration, InstanceCount, InstanceType, Host, FailureReason, CPUUtil, DiskUtil, MemoryUtil, GPUMemoeyUtil, GPUUtil',
         ],
         width:24,
       }

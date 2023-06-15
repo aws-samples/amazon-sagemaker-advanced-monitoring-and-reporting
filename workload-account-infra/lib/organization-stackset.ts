@@ -13,7 +13,7 @@ type OrganizationStacksetProps = {
   monitoringAccountSinkArn: string;
   monitoringAccountEventbusArn: string;
   stackSetTargetOUs: string[];
-  stackSetTargetRegions: string[];
+  stackSetTargetRegion: string;
 } & cdk.StackProps;
 
 export class OrganizationStackset extends cdk.Stack {
@@ -26,7 +26,7 @@ export class OrganizationStackset extends cdk.Stack {
       monitoringAccountSinkArn,
       monitoringAccountEventbusArn,
       stackSetTargetOUs,
-      stackSetTargetRegions,
+      stackSetTargetRegion,
     } = props;
 
     const crossaccountObservabilitySourceStack = new cfn.CfnStackSet(this, "crossaccountObservabilitySourceStack",
@@ -61,7 +61,7 @@ export class OrganizationStackset extends cdk.Stack {
           deploymentTargets: {
             organizationalUnitIds: stackSetTargetOUs,
           },
-          regions: stackSetTargetRegions,
+          regions: [stackSetTargetRegion],
         }],
         templateBody: fs.readFileSync(path.resolve(__dirname, '..', 'resources', 'templates', 'crossaccountobservability_sources.yaml')).toString() 
       }
@@ -99,7 +99,7 @@ export class OrganizationStackset extends cdk.Stack {
           deploymentTargets: {
             organizationalUnitIds: stackSetTargetOUs,
           },
-          regions: stackSetTargetRegions,
+          regions: [stackSetTargetRegion],
         }],
         templateBody: fs.readFileSync(path.resolve(__dirname, '..', 'resources', 'templates', 'crossaccountevents_sources.yaml')).toString() 
       }

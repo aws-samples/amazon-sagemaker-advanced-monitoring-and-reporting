@@ -4,7 +4,7 @@ WORKSPACE=$(shell pwd)
 
 .PHONY: deploy-management-stackset
 deploy-management-stackset:
-	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${MANAGEMENT_ACCOUNT} cdk deploy ManagementStackStack --require-approval never ${MANAGEMENT_PROFILE}
+	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${MANAGEMENT_ACCOUNT} cdk deploy ManagementStackStack ${MANAGEMENT_PROFILE}
 
 .PHONY: synth-management-stackset
 synth-management-stackset:
@@ -17,7 +17,7 @@ destroy-management-stackset:
 
 .PHONY: deploy-monitoring-account-infra
 deploy-monitoring-account-infra:
-	cd monitoring-account-infra && CDK_DEPLOY_ACCOUNT=${MONITORING_ACCOUNT} cdk deploy --require-approval never ${MONITORING_PROFILE}
+	cd monitoring-account-infra && CDK_DEPLOY_ACCOUNT=${MONITORING_ACCOUNT} cdk deploy ${MONITORING_PROFILE}
 
 .PHONY: synth-monitoring-account-infra
 synth-monitoring-account-infra:
