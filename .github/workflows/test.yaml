@@ -5,6 +5,8 @@ on:
         description: 'Environment to run tests against'
         options:
           - dev
+          - default
+        type: choice
         default: 'default'
 
 jobs:
