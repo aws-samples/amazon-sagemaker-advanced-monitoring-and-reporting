@@ -4,11 +4,17 @@ on:
       environment:
         description: 'Environment to run tests against'
         type: environment
-        required: true
+        options:
+          - dev
+        default: 'default'
 
 jobs:
   print-tag:
     runs-on: ubuntu-latest
     steps:
       - name: Print the input tag to STDOUT
+        if: inputs.environment == 'dev'
         run: echo  The environment is ${{ inputs.environment }} 
+      - name: default env
+        if: inputs.environment == 'default'
+        run: echo Default envrionment
