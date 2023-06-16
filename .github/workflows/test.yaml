@@ -3,7 +3,6 @@ on:
     inputs:
       environment:
         description: 'Environment to run tests against'
-        type: environment
         options:
           - dev
         default: 'default'
