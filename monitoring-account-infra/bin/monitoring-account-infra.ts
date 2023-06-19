@@ -11,5 +11,5 @@ new MonitoringAccountInfraStack(app, 'MonitoringAccountInfraStack', {
   },
   devMode: true,
   orgPathToAllow: app.node.tryGetContext('org-path-to-allow'),
-  accountsToAllow: app.node.tryGetContext('accounts-to-allow').split(',') || [],
+  accountsToAllow: app.node.tryGetContext('accounts-to-allow')? app.node.tryGetContext('accounts-to-allow').split(',') : [] ,
 });
