@@ -6,6 +6,7 @@ import {
   aws_cloudwatch as cloudwatch,
   aws_iam as iam,
   aws_lambda as lambda,
+  aws_dynamodb as dynamodb,
   CfnOutput,
   RemovalPolicy,
   CfnResource,
@@ -195,6 +196,11 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
 
     sagemakerAPIEventRule.addTarget(new targets.CloudWatchLogGroup(sagemakerAPIEventsLogGroup));
 
+    const jobStateTable = new dynamodb.Table(this, 'JobStateTable', {
+      partitionKey: { name: 'accountJobtypeJobname', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'jobStatus', type: dynamodb.AttributeType.STRING },
+    })
+    
     const ingesterLambda = new PythonFunction(
       this, 'ingesterLambda', {
         functionName: 'SageMaker-Event-Ingester',
@@ -207,6 +213,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
           "AWS_EMF_LOG_GROUP_NAME": AWS_EMF_LOG_GROUP_NAME,
           "AWS_EMF_SERVICE_TYPE": AWS_EMF_SERVICE_TYPE,
           "AWS_EMF_SERVICE_NAME": AWS_EMF_SERVICE_NAME,
+          "JOB_STATE_TABLE": jobStateTable.tableName,
         },
       }
     );
@@ -215,6 +222,17 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         {
           actions: ["cloudwatch:GetMetricData"],
           resources: ['*']
+        }
+      )
+    );
+    ingesterLambda.addToRolePolicy(
+      new iam.PolicyStatement(
+        {
+          actions: [
+            "dynamodb:PutItem",
+            "dynamodb:query"
+          ],
+          resources: [jobStateTable.tableArn]
         }
       )
     );
