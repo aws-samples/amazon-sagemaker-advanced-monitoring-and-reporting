@@ -14,7 +14,7 @@ Enter the following input values:
 | Monitoring account AWSCLI profile name | [Optional] You can find the profile name from ~/.aws/config. If not provided, uses default AWS creds from the chain | |
 
 Keep a note of the outputs as below. They will be used in next step when deploying management account stack.
-![Monitoring Stack Outputs](./images/MonitoringStackOutputs.png)
+![Monitoring Stack Outputs](../images/MonitoringStackOutputs.png)
 
 #### Step 2: Setup Workload Account Monitoring Infrastructure
 <span style="background-color: #FFFF00">Repeat this step for each workload account that will be centrally monitored</span>
