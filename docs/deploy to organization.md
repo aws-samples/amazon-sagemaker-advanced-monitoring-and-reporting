@@ -13,8 +13,14 @@ Enter the following input values:
 | Monitoring account AWSCLI profile name | [Optional] You can find the profile name from ~/.aws/config. If not provided, uses default AWS creds from the chain | |
 | Sagemaker workload OU path | The AWS organization unit path that have the Sagemaker workload accounts. Please keep the "/" at the end | o-1a2b3c4d5e/r-saaa/ou-saaa-1a2b3c4d/ |
 
+To retrieve the OU path, you can go to **AWS Organization** console, under **AWS accounts**, find the below information to construct the OU path. For the below example, the corresponding OU path is `o-ye3wn3kyh6/r-taql/ou-taql-wu7296by/`.
+<div>
+      <img src="../images/ouPath.png" alt="OU Path" width="500" style="display:inline-block">
+</div>
+
+
 Keep a note of the outputs as below. They will be used in next step when deploying management account stack.
-![Monitoring Stack Outputs](./images/MonitoringStackOutputs.png)
+![Monitoring Stack Outputs](../images/MonitoringStackOutputs.png)
 
 #### Step 2: Setup Management Account Resources
 To deploy the management account resources, run the following command:
