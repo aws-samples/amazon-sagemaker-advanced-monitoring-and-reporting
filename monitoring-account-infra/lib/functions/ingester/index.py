@@ -127,7 +127,10 @@ def record_job_event(account: str, job_type: str, job_name: str, job_status:str,
         new_job_event = {
             "accountJobtypeJobname": f"{account}#{job_type}#{job_name}",
             "jobStatus": job_status,
-            "metadata": json.dumps(event_metadata)
+            "metadata": json.dumps(event_metadata),
+            "jobName": job_name,
+            "jobType": job_type,
+            "sourceAccount": account,
         }
         _ = dynamodb.put_item(
             TableName=table_name,
