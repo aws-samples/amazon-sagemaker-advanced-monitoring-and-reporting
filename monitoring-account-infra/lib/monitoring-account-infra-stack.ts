@@ -14,6 +14,7 @@ import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { Construct } from 'constructs';
 import * as path from 'path';
 import { Parameters } from './constants';
+import { IPrincipal } from 'aws-cdk-lib/aws-iam';
 
 type MonitoringAccountInfraStackConfig = {
   /**
@@ -68,7 +69,7 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
     if (accountsToAllow.length > 0) {
       sinkPolicyStatement.push({
         Effect: "Allow",
-        Principal: { AWS: `!Split [",", "${accountsToAllow.toString()}"]`},
+        Principal: {"AWS": accountsToAllow},
         Resource: "*",
         Action: [ "oam:CreateLink", "oam:UpdateLink" ],
         Condition: {
@@ -128,16 +129,21 @@ export class MonitoringAccountInfraStack extends cdk.Stack {
         })
       );
     }
-    accountsToAllow.forEach(accountId => {
+    if (accountsToAllow.length > 0) {
+      let workloadAccountPrincipal:IPrincipal[] = []
+      accountsToAllow.forEach(accountId => {
+        workloadAccountPrincipal.push(new iam.AccountPrincipal(accountId))
+      });
       sagemakerMonitoringAccountEventbus.addToResourcePolicy(
         new iam.PolicyStatement({
-          sid: `AllowAccount${accountId}`,
+          sid: `AllowAccounts`,
           actions: ['events:PutEvents'],
-          principals: [new iam.AccountPrincipal(accountId)],
+          principals: workloadAccountPrincipal,
           resources: [sagemakerMonitoringAccountEventbus.eventBusArn],
         })
       );
-    });
+    }
+    
 
     const sagemakerStageChangeEventRule = new events.Rule(
       this, 'sagemakerStageChangeEventRule',

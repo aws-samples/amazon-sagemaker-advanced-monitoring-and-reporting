@@ -29,9 +29,9 @@ export class WorkloadAccountInfraStack extends cdk.Stack {
     const crossaccountObservabilityCfnTemplate = new assets.Asset(this, 'CrossaccountObservabilityCfnTemplate', {
       path: path.resolve(__dirname, '..', 'resources', 'templates', 'crossaccountobservability_sources.yaml'),
     });
-    new cfn.CfnStack(this, "crossaccountObservabilitySourceStack",
+    new cfn.CfnStack(this, "crossaccountObservabilityWorkloadStack",
       {
-        templateUrl: crossaccountObservabilityCfnTemplate.s3ObjectUrl,
+        templateUrl: crossaccountObservabilityCfnTemplate.httpUrl,
         parameters: {
           MonitoringAccountId: monitoringAccountId,
           MonitoringAccountSinkArn: monitoringAccountSinkArn,
@@ -43,9 +43,9 @@ export class WorkloadAccountInfraStack extends cdk.Stack {
     const centralizedEventStackCfnTemplate = new assets.Asset(this, 'CentralizedEventStackCfnTemplate', {
       path: path.resolve(__dirname, '..', 'resources', 'templates', 'crossaccountevents_sources.yaml'),
     });
-    new cfn.CfnStack(this, "centralizedEventStackSet",
+    new cfn.CfnStack(this, "centralizedEventWorkloadStack",
       {
-        templateUrl: centralizedEventStackCfnTemplate.s3ObjectUrl,
+        templateUrl: centralizedEventStackCfnTemplate.httpUrl,
         parameters: {
           MonitoringEventBusArn: monitoringAccountEventbusArn,
           MonitoringAccountId: monitoringAccountId,

@@ -29,15 +29,15 @@ destroy-monitoring-account-infra:
 
 .PHONY: deploy-workload-account-infra
 deploy-workload-account-infra:
-	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk deploy WorkloadAccountInfraStack
+	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk deploy WorkloadAccountInfraStack ${WORKLOAD_PROFILE}
 
 .PHONY: synth-workload-account-infra
 synth-workload-account-infra:
-	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk synth WorkloadAccountInfraStack
+	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk synth WorkloadAccountInfraStack ${WORKLOAD_PROFILE}
 
 .PHONY: destroy-workload-account-infra
 destroy-workload-account-infra:
-	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk destroy WorkloadAccountInfraStack
+	cd workload-account-infra && CDK_DEPLOY_ACCOUNT=${WORKLOAD_ACCOUNT} cdk destroy WorkloadAccountInfraStack ${WORKLOAD_PROFILE}
 
 build:
 	cd workload-account-infra && npm ci
