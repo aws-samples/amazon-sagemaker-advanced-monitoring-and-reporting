@@ -48,6 +48,7 @@ def lambda_handler(event, context, metrics):
                 job_detail["StartTime"] = detail.get("ProcessingStartTime")
                 job_detail["InstanceType"] = detail.get("ProcessingResources").get("ClusterConfig").get("InstanceType")
                 job_detail["InstanceCount"] = detail.get("ProcessingResources").get("ClusterConfig").get("InstanceCount")
+                job_detail["Tags"] = detail.get("Tags")
                 if detail.get("FailureReason"):
                     job_detail["FailureReason"] = detail.get("FailureReason")
 
