@@ -56,10 +56,11 @@ def lambda_handler(event, context, metrics):
                     isDuplicate, item = check_job_event_duplication(account, event_type.name, job_detail["JobName"], job_detail["Status"])
                     record_job_event(account, event_type.name, job_detail["JobName"], job_detail["Status"], detail)
                     if not isDuplicate:
-                        job_detail["Duration"] = detail.get("ProcessingEndTime") - detail.get("ProcessingStartTime")
                         metrics.put_metric("ProcessingJobCount_Total", 1, "Count")
                         metrics.put_metric("ProcessingJobCount_"+job_status, 1, "Count")
-                        metrics.put_metric("ProcessingJob_Duration", detail.get("ProcessingEndTime") - detail.get("ProcessingStartTime"), "Milliseconds")
+                        if detail.get("ProcessingEndTime") and detail.get("ProcessingStartTime"):
+                            metrics.put_metric("ProcessingJob_Duration", detail.get("ProcessingEndTime") - detail.get("ProcessingStartTime"), "Milliseconds")
+                            job_detail["Duration"] = detail.get("ProcessingEndTime") - detail.get("ProcessingStartTime")
 
                         search_pattern = "SEARCH('{/aws/sagemaker/ProcessingJobs,Host} "+ detail.get("ProcessingJobName") +"', 'Maximum')"
                         job_metrics = search_metrics(
@@ -96,11 +97,12 @@ def lambda_handler(event, context, metrics):
                     isDuplicate, item = check_job_event_duplication(account, event_type.name, job_detail["JobName"], job_detail["Status"])
                     record_job_event(account, event_type.name, job_detail["JobName"], job_detail["Status"], detail)
                     if not isDuplicate:
-                        job_detail["Duration"] = detail.get("TrainingEndTime") - detail.get("TrainingStartTime")
                         metrics.put_metric("TrainingJobCount_Total", 1, "Count")
                         metrics.put_metric("TrainingJobCount_"+job_status, 1, "Count")
-                        metrics.put_metric("TrainingJob_Duration", detail.get("TrainingEndTime") - detail.get("TrainingStartTime"), "Milliseconds")
-                        
+                        if detail.get("TrainingEndTime") and detail.get("TrainingStartTime"):
+                            metrics.put_metric("TrainingJob_Duration", detail.get("TrainingEndTime") - detail.get("TrainingStartTime"), "Milliseconds")
+                            job_detail["Duration"] = detail.get("TrainingEndTime") - detail.get("TrainingStartTime")                            
+
                         search_pattern = "SEARCH('{/aws/sagemaker/TrainingJobs,Host} "+ detail.get("TrainingJobName") +"', 'Maximum')"
                         job_metrics = search_metrics(
                             search_pattern,
