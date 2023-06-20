@@ -21,6 +21,7 @@ def search_metrics(search_expression, account=None, start_time=datetime.now()-ti
         StartTime=start_time,
         EndTime=end_time
     )
+    print(f"DEBUG[search_metric_response]: {response}")
     result = {}
     try:
         for metric in response['MetricDataResults']:
